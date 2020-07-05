@@ -1,24 +1,16 @@
 {
-  "name": "Node-Express-online-memo",
-  "version": "1.0.0",
-  "description": "* 因为是node.js项目，所以可以按照下面命令初始化 ```sh npm init -y ``` ### 发现一个小问题 * 就是初始化npm init的时候，名字不能出现空格，不然会报下面的错误 ``` $ npm init -y npm ERR! Invalid name: \"Node-Express-online memo\"",
-  "main": "index.js",
+  "name": "node-express-online-memo",
+  "version": "0.0.0",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node ./bin/www"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/bomber063/Node-Express.js-online-memo.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/bomber063/Node-Express.js-online-memo/issues"
-  },
-  "homepage": "https://github.com/bomber063/Node-Express.js-online-memo#readme",
   "dependencies": {
-    "express": "^4.17.1",
-    "nrm": "^1.2.1"
+    "cookie-parser": "~1.4.4",
+    "debug": "~2.6.9",
+    "ejs": "~2.6.1",
+    "express": "~4.16.1",
+    "http-errors": "~1.6.3",
+    "morgan": "~1.9.1"
   }
 }

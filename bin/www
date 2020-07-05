@@ -1,0 +1,95 @@
+#!/usr/bin/env node
+
+/**
+ * Module dependencies.
+ */
+
+var app = require('../app');//就是引入上一个目录的app.js这个文件
+var debug = require('debug')('node-express-online-memo:server');
+var http = require('http');
+
+/**
+ * Get port from environment and store in Express.
+ */
+
+var port = normalizePort(process.env.PORT || '3000');
+// process.env.PORT是 环境变量http://expressjs.com/en/5x/api.html#app.settings.table
+//当前进程的PORT，也就是当前提供给环境的PORT,如果没用就用3000端口，这就是默认情况下打开的就是3000
+app.set('port', port);//当字符串port设置为当前的变量port
+// app.set()这个说明 http://expressjs.com/en/5x/api.html#trust.proxy.options.table
+
+/**
+ * Create HTTP server.
+ */
+
+var server = http.createServer(app);//启动服务器
+// http.createServer() 可以在这里查看http://expressjs.com/en/guide/migrating-4.html#other-changes
+// 新版本的已经用app.listen代替它，http://expressjs.com/en/5x/api.html#app.listen
+
+/**
+ * Listen on provided port, on all network interfaces.
+ */
+
+server.listen(port);//监听端口
+server.on('error', onError);//当报错的时候执行onError函数
+server.on('listening', onListening);
+
+/**
+ * Normalize a port into a number, string, or false.
+ */
+
+function normalizePort(val) {
+  var port = parseInt(val, 10);
+
+  if (isNaN(port)) {
+    // named pipe
+    return val;
+  }
+
+  if (port >= 0) {
+    // port number
+    return port;
+  }
+
+  return false;
+}
+
+/**
+ * Event listener for HTTP server "error" event.
+ */
+
+function onError(error) {
+  if (error.syscall !== 'listen') {
+    throw error;
+  }
+
+  var bind = typeof port === 'string'
+    ? 'Pipe ' + port
+    : 'Port ' + port;
+
+  // handle specific listen errors with friendly messages
+  switch (error.code) {
+    case 'EACCES'://端口没有访问权限报错
+      console.error(bind + ' requires elevated privileges');
+      process.exit(1);
+      break;
+    case 'EADDRINUSE'://端口占用报错
+      console.error(bind + ' is already in use');
+      process.exit(1);
+      break;
+    default:
+      throw error;
+  }
+}
+
+/**
+ * Event listener for HTTP server "listening" event.
+ */
+
+function onListening() {
+  var addr = server.address();
+  var bind = typeof addr === 'string'
+    ? 'pipe ' + addr
+    : 'port ' + addr.port;
+  debug('Listening on ' + bind);
+}
