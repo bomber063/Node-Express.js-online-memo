@@ -358,7 +358,66 @@ router.get('/', function(req, res, next) {
 
 module.exports = router;
 ```
+## 学习express官网
+* 比较重要的三个概念
+  * 中间件——[写中间件](http://expressjs.com/en/guide/writing-middleware.html)和[使用中间件](http://expressjs.com/en/guide/using-middleware.html)
+    * [Request中的:id](http://expressjs.com/en/5x/api.html#req)
+      ```js
+        app.get('/user/:id', function (req, res) {
+        res.send('user ' + req.params.id)
+        //如果在请求的路径地址是http://localhost:3000/user/123
+        //那么req.params.id就是123
+      })
+      ```
+  * [路由](http://expressjs.com/en/guide/routing.html)
+  * [模板引擎](http://expressjs.com/en/guide/using-template-engines.html)
+* next()和next('route')
+  * [next()](http://expressjs.com/en/guide/using-middleware.html)是将控制权传递给下一个中间件
+  * next('route')在官网有提到两次，分别是[using-middleware](http://expressjs.com/en/guide/using-middleware.html)和[app.METHOD](http://expressjs.com/en/5x/api.html#app.METHOD),要跳过路由器的其余中间件功能，请调用next('router') 将控制权转回路由器实例,也就是next使用字符串调用'router'将导致绕过该路由器上的所有其余路由回调。**简单理解就是直接跳过该路由上的中间件跳出这个路由**
+  * 更多说明：
+    * [对express 应用级中间件next('route') 方法实例的疑惑](https://www.imooc.com/wenda/detail/516054)
+    * [Express next function, what is it really for?](https://stackoverflow.com/questions/13133071/express-next-function-what-is-it-really-for)
+  * 举例`next("route")`，下面代码用到`next("route")`
+  ```js
+    var express = require('express');//引入express，从node_modules里面
+    var router = express.Router();//用express的Router函数
+    router.get('/', function fn1(req, res, next) {
+      console.log("First middleware function called");
+      next();
+    },
+    function fn2(req, res, next) {
+      console.log("Second middleware function called");
+      next("route");
+    },
+    function fn3(req, res, next) {
+      console.log("Third middleware function will not be called");
+      next();
+    })
+    module.exports = router;
+  ```
+  * 将会打出下面结果,可以看到第三个third并没有被调用。
+  ```sh
+      $ npm start
 
+      > node-express-online-memo@0.0.0 start D:\jirengu\github收集\Node-Express-online-memo
+      > node ./bin/www
+
+      First middleware function called
+      Second middleware function called
+      GET / 404 13.904 ms - 994
+  ```
+  * 如果都用next()那么就会打出第三个third
+  ```sh
+      $ npm start
+
+      > node-express-online-memo@0.0.0 start D:\jirengu\github收集\Node-Express-online-memo
+      > node ./bin/www
+
+      First middleware function called
+      Second middleware function called
+      Third middleware function will not be called
+      GET / 404 20.013 ms - 994
+  ```
 ## 其他
 ### 小技巧安装nrm切换源
 * [npr文档](https://www.npmjs.com/package/nrm)
