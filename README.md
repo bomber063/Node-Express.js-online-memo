@@ -361,7 +361,7 @@ module.exports = router;
 ## 学习express官网
 * 比较重要的三个概念
   * 中间件——[写中间件](http://expressjs.com/en/guide/writing-middleware.html)和[使用中间件](http://expressjs.com/en/guide/using-middleware.html)
-    * [Request中的:id](http://expressjs.com/en/5x/api.html#req)
+    * [Request中的:id](http://expressjs.com/en/5x/api.html#req),这里默认id前面有一个**冒号**。
       ```js
         app.get('/user/:id', function (req, res) {
         res.send('user ' + req.params.id)
@@ -418,6 +418,28 @@ module.exports = router;
       Third middleware function will not be called
       GET / 404 20.013 ms - 994
   ```
+* [app.use（[path，] callback [，callback ...]）](http://expressjs.com/en/5x/api.html#app.use)
+将指定的一个或多个中间件函数安装在指定的路径上：当所请求路径的基数匹配时，将执行中间件函数path。
+  * 一条路线将匹配紧随其后的任何路径，并带有“ /”。例如：app.use('/apple', ...)将匹配“ / apple”，“ / apple / images”，“ / apple / images / news”，等等。
+
+由于path默认值为“ /”，因此将为对应用程序的每个请求执行不带路径安装的中间件。
+例如，此中间件功能将针对对应用程序的**每个请求**执行：
+* 路由中间件和应用中间件很类似。路由器级中间件与应用程序级中间件的工作方式相同，**只不过它绑定到的实例express.Router()**。
+```js
+var router = express.Router()
+```
+* 但是**路由中间件可以通过应用中间件的基础上再写url路径**。比如app.js里面有一个代码
+```js
+var indexRouter = require('./routes/index');
+app.use('/bomber', indexRouter);//当请求的路径是主页的时候就交给indexRouter函数去处理
+```
+* 然后在routes文件夹里面的index.js文件有一个代码
+```js
+router.get('/aaa', function(req, res, next) {
+  res.render('index', { title: 'Express' });
+});
+```
+* 那么**真正匹配的路由**应该是`http://localhost:3000/bomber/aaa`，**也就是连接了两个文件的内容的路由**。前面的bomber相当于应用层(可以是video)，比如video应用里面对应的是什么video(可以是aaa这样的参数)。这样网站的逻辑功能划分的更加清楚。当然如果网站本来就很简单也可以不用划分两级来处理跳转，直接在app.js里面跳转即可。
 ## 其他
 ### 小技巧安装nrm切换源
 * [npr文档](https://www.npmjs.com/package/nrm)

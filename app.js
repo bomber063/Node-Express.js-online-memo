@@ -24,7 +24,7 @@ app.set('view engine', 'ejs');//模板引擎是ejs
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
+app.use(cookieParser());//由这个模块得到cookie
 app.use(express.static(path.join(__dirname, 'public')));
 // 这里的express.static(path.join(__dirname, 'public'))就是把当前目录的public作为静态目录，可以加载images,javascript,stylesheets，http://expressjs.com/en/starter/static-files.html
 // 就是假设请求的是public目录的文件，就不用走路由可以直接拿到这个文件里面的信息。
@@ -33,7 +33,7 @@ app.use('/', indexRouter);//当请求的路径是主页的时候就交给indexRo
 app.use('/users', usersRouter);
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
+app.use(function(req, res, next) {//如果前面的中间件都没有匹配上就到了这里出现404
   next(createError(404));
 });
 
@@ -41,6 +41,7 @@ app.use(function(req, res, next) {
 app.use(function(err, req, res, next) {
   // set locals, only providing error in development
   res.locals.message = err.message;
+  // http://expressjs.com/en/5x/api.html#res.locals
   res.locals.error = req.app.get('env') === 'development' ? err : {};
 
   // render the error page
