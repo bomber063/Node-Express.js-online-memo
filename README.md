@@ -418,6 +418,8 @@ module.exports = router;
       Third middleware function will not be called
       GET / 404 20.013 ms - 994
   ```
+### 路由
+* [app.locals](http://expressjs.com/en/5x/api.html#app.locals)在app.js里面有用到就是本地变量。
 * [app.use（[path，] callback [，callback ...]）](http://expressjs.com/en/5x/api.html#app.use)
 将指定的一个或多个中间件函数安装在指定的路径上：当所请求路径的基数匹配时，将执行中间件函数path。
   * 一条路线将匹配紧随其后的任何路径，并带有“ /”。例如：app.use('/apple', ...)将匹配“ / apple”，“ / apple / images”，“ / apple / images / news”，等等。
@@ -439,7 +441,64 @@ router.get('/aaa', function(req, res, next) {
   res.render('index', { title: 'Express' });
 });
 ```
-* 那么**真正匹配的路由**应该是`http://localhost:3000/bomber/aaa`，**也就是连接了两个文件的内容的路由**。前面的bomber相当于应用层(可以是video)，比如video应用里面对应的是什么video(可以是aaa这样的参数)。这样网站的逻辑功能划分的更加清楚。当然如果网站本来就很简单也可以不用划分两级来处理跳转，直接在app.js里面跳转即可。
+* 那么**真正匹配的路由**应该是`http://localhost:3000/bomber/aaa`，**也就是连接了两个文件的内容的路由**。**前面的bomber相当于应用层**(可以是video)，比如video应用里面对应的是什么video(可以是aaa这样的参数)。这样网站的逻辑功能划分的更加清楚。当然如果网站本来就很简单也可以不用划分两级来处理跳转，直接在app.js里面跳转即可。
+### 模板引擎
+* 我这里使用[ejs模板引擎](https://ejs.bootcss.com/),[ejs模板引擎github](https://github.com/mde/ejs),在views目录下面的就是ejs模板文件。一般都是带有这样的符号`<% %>`,比如,
+```js
+<%= error.status %>
+```
+* 模板引擎最常用的就是if...else和for循环。
+### 静态文件
+* [静态文件](http://expressjs.com/en/starter/static-files.html),若要提供静态文件，例如图像，CSS文件和JavaScript文件，请使用express.staticExpress中的内置中间件功能。
+* [__dirname](http://nodejs.cn/api/modules.html#modules_dirname)就是当前模块目录名字。
+* [path.join()](http://nodejs.cn/api/path.html#path_path_join_paths) 方法会将所有给定的 path 片段连接到一起（使用平台特定的分隔符作为定界符），然后规范化生成的路径。长度为零的 path 片段会被忽略。 如果连接后的路径字符串为长度为零的字符串，则返回 '.'，表示当前工作目录。
+```js
+path.join('/目录1', '目录2', '目录3/目录4', '目录5', '..');
+// 返回: '/目录1/目录2/目录3/目录4'
+
+path.join('目录1', {}, '目录2');
+// 抛出 'TypeError: Path must be a string. Received {}'
+```
+* 比如我在app.js里面写了一句这样代码
+```js
+app.use(express.static(path.join(__dirname, 'public')));
+// 这里的express.static(path.join(__dirname, 'public'))就是把当前目录的public作为静态目录，可以加载images,javascript,stylesheets，http://expressjs.com/en/starter/static-files.html
+// 就是假设请求的是public目录的文件，就不用走路由可以直接拿到这个文件里面的信息。
+```
+* 那么就可以不用走路由可以直接拿到这个文件里面的信息，比如，如果目录public/stylesheets/style.css。**我可以省去public目录这个名字，而直接写下面地址就可以拿到style.css文件**
+```js
+http://localhost:3000/stylesheets/style.css
+```
+* 所以在主目录`http://localhost:3000/`下面，通过打开开发者工具可以看到head标签里面有一个好href，这里的地址是`/stylesheets/style.css`，也就是把主目录加上之后，完整的路径是`http://localhost:3000/stylesheets/style.css`，并没有public这个文件夹目录。
+```html
+<link rel="stylesheet" href="/stylesheets/style.css">
+```
+* 就是因为我们有写静态文件这段代码
+```js
+app.use(express.static(path.join(__dirname, 'public')));
+```
+#### 设置静态文件后如果有同样的路由就会被拦截
+* 比如在app.js里面有这样一句代码
+```js
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.use('/stylesheets/style.css',function(req,res,next){
+  console.log('get style.css....')
+  res.send('get style.css....')
+})//这段路由不会被执行
+```
+* 因为前面已经设置了静态文件资源，那么会被拦截，那么下面的`/stylesheets/style.css`就不会被执行，**因为静态文件资源已经匹配上了，就不会继续往下面走了，也就是这个路径和整个文件夹匹配上了，它会认为你需要的是这个目录里面的资源，就不会往下面代码继续执行**。
+* 如果app.js里面的代码是这样的
+```js
+// app.use(express.static(path.join(__dirname, 'public')));
+
+app.use('/stylesheets/style.css',function(req,res,next){
+  console.log('get style.css....')
+  res.send('get style.css....')
+})//这段路由会被执行
+```
+* 因为前面没有设置静态文件资源，那么下面`/stylesheets/style.css`就会被执行,并且输入这个路由的时候会显示`get style.css....`，并且在node上面会打印出`get style.css....`。
+* 所以这里我们也可以知道路由里面不需要看文件的后缀，比如`style.css`，这里面的后缀css只是路由的名字而已,你可以写成`style.html`或者任何奇怪的名字，**它只是一个字符串名字而已**。
 ## 其他
 ### 小技巧安装nrm切换源
 * [npr文档](https://www.npmjs.com/package/nrm)

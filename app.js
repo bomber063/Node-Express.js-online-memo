@@ -29,6 +29,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 // 这里的express.static(path.join(__dirname, 'public'))就是把当前目录的public作为静态目录，可以加载images,javascript,stylesheets，http://expressjs.com/en/starter/static-files.html
 // 就是假设请求的是public目录的文件，就不用走路由可以直接拿到这个文件里面的信息。
 
+// app.use('/stylesheets/style.css',function(req,res,next){
+//   console.log('get style.css....')
+//   res.send('get style.css....')
+// })
+
 app.use('/', indexRouter);//当请求的路径是主页的时候就交给indexRouter函数去处理，下面的也是一样的意思。
 app.use('/users', usersRouter);
 
