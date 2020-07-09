@@ -499,6 +499,49 @@ app.use('/stylesheets/style.css',function(req,res,next){
 ```
 * 因为前面没有设置静态文件资源，那么下面`/stylesheets/style.css`就会被执行,并且输入这个路由的时候会显示`get style.css....`，并且在node上面会打印出`get style.css....`。
 * 所以这里我们也可以知道路由里面不需要看文件的后缀，比如`style.css`，这里面的后缀css只是路由的名字而已,你可以写成`style.html`或者任何奇怪的名字，**它只是一个字符串名字而已**。
+## webpack配置
+* 一般的后端都是增删改查。叫做[增删改查(curd)](https://www.cnblogs.com/jyue/p/10481317.html):
+  * curd的解释: 代表创建（Create）、更新（Update）、读取（Retrieve）和删除（Delete）
+* 后台还可以加一些普通的权限管理，比如登陆，管理员额外去管理和操作某些页面。
+### 在package.json里面的script里面写PORT老师的版本不适合我
+* 我的电脑系统是window10，老师的应该是苹果的IOS，根据[官网的说明](http://expressjs.com/en/starter/generator.html)
+* On MacOS or Linux, run the app with this command:
+```sh
+$ DEBUG=myapp:* npm start
+```
+* **On Windows, use this command:**
+```sh
+> set DEBUG=myapp:* & npm start
+```
+* 老师用的是下面的代码
+```js
+  "scripts": {
+    "start": "PORT=8080 node ./bin/www"
+  },
+```
+* **经过测试我的电脑上面代码会报错，要用下面的代码才可以不报错执行**
+```js
+  "scripts": {
+    "start": "set PORT=8080 & node ./bin/www"
+  },
+```
+### 80端口需要管理员权限
+* 我的电脑是自己的电脑，所以是由管理员权限的
+* 80端口默认就可以不用写端口号了
+```sh
+  "scripts": {
+    "start": "PORT=80 node ./bin/www"
+  },
+```
+* **但是没有权限的电脑会报错，显示出需要你提升权限**，会显示类似如下报错
+```
+Port 80 requires elevated privileges
+```
+* 在Mac电脑里面如果要想管理员权限可以前面加上`sudo`，这样可以以root的权限去运行，比如
+```sh
+sudo PORT=80 node ./bin/www
+```
+* 通过运行配置id table，把80端口转换我设置的端口，比如8080端口，那么别人在输入网址的时候就不用在输入端口号了，因为默认就是转化为我设置的8080端口。**对于用于来说只是输入了url就可以看到页面，不用输入端口，对我自己来说，用户是访问的是8080端口，而且我自己有权限去启动这个端口的**，除了运行配置id table，后端去设置服务器的配置也可以作为转发。
 ## 其他
 ### 小技巧安装nrm切换源
 * [npr文档](https://www.npmjs.com/package/nrm)
