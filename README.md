@@ -542,6 +542,266 @@ Port 80 requires elevated privileges
 sudo PORT=80 node ./bin/www
 ```
 * 通过运行配置id table，把80端口转换我设置的端口，比如8080端口，那么别人在输入网址的时候就不用在输入端口号了，因为默认就是转化为我设置的8080端口。**对于用于来说只是输入了url就可以看到页面，不用输入端口，对我自己来说，用户是访问的是8080端口，而且我自己有权限去启动这个端口的**，除了运行配置id table，后端去设置服务器的配置也可以作为转发。
+### 代码目录分析
+* 完善文件的目录。把相应的内容放到合适的地方。
+* express框架有下面的目录：
+  * bin目录里面是可执行的文件。也是启动的网站的入口
+  * node_modules就是一些依赖的模块。
+  * public是静态资源
+  * routes是路由的处理
+  * views是模板
+  * **我们把前端的业务代码放到public里面**
+* 单个文件是无法执行的，我们用webpack的时候，必须通过webpack这个命令把它进行处理。之后得到一个可执行的js文件，**public里面应该是我们的目标代码**。所以我们还需要**创建一个src作为源代码和源文件**。
+* 创建src目录后我们同样创建一些文件夹和文件,我们的前端代码就在这里面写
+  * imgs——图片，工程化一般是压缩后的图片移动到这里。但是我这里就没有压缩了
+  * js代码
+  * less代码，会转换为css.
+* 源代码写完后经过命令编译就转换到public目录下面,整个网站是访问的是public里面的代码的。
+* 在js代码中创建如下
+  * lib——一般是引用的第三方库，比如Jquery，vue等，当然可以使用npx install的方式安装到node_modules里面也是可以的。虽然node_modules是后端用的东西，但是因为我们用了webpack所以也可以拿到。
+  * app——代表不同页面的一个入口。比如这里面有首页index.js，还有详情页detail.js等。
+  * mod——代表模块，一个入口里面会有很多模块，这些模块在多个页面里面都会使用，比如曝光模块，轮播组件，事件中心，事件管理器，懒加载等通用的东西
+* 入口文件里面需要什么模块就直接require，从mod文件夹中去拿。
+* **之所以去做一个目录页和页面的划分是为了让整个逻辑更加清晰**。一眼就知道要修改什么，一眼就知道有什么作用。下次新增的时候也容易归类。
+* **对于这种目录层级有时候面试会问到有些什么好的经验或者方法**，一般有目录分级有两种
+  * 一种是按照应用去划分。比如app里面有很多文件夹，每一个文件夹代表一个页面里面**所使用的js,包括了库文件和页面文件**.
+  * 一种是按照功能去划分。就是把一些非页面的东西放到一起，页面的东西放到一起。**我们就是采用这种**
+* 接下来就需要定义页面，定义接口，定义路由
+* 因为webpack.config.js是前端用的东西，就放到src目录里面。当然如果前后端都需要用到可以把它放到最外面。webpack的作用就是把src这里面的代码和模块进行打包编译。放到public下面的js里面。
+* 首先需要配置一个工程化和自动化的流程环境。第二个就是实现一个功能，在功能完成之前自己做一个测试。
+* 我们的计数选型里面需要用到webpack。我们的css里面使用到的是less.最后会被打包放到我们的public目录里面。
+### 自动编译
+* 这样就不用每次在src里面改一些代码就要编译一次，它会自动去编译。
+* 先测试wepback的配置没问题。**这样出错的时候我们就知道是webpack配置的出错还是代码本身出错。还是代码里面引用的路径出错**。
+### 测试webpack
+* [module.require(id)]方法提供了一种加载模块的方法，就像从原始模块调用 require() 一样。为了做到这个，需要获得一个 module 对象的引用。 **因为 require() 会返回 module.exports**，且 module 通常只在一个特定的模块代码中有效，所以为了使用它，必须显式地导出。
+* 在mod文件夹中创建a.js和b.js。
+* a.js
+```js
+module.exports.a='aaaa'
+```
+* b.js
+```js
+var a=require('./a.js').a//因为a.js里面exports出去的是一个对象也就是module.exports。我们需要用到里面的a属性，就是这么写
+var a1=require('./a.js')
+
+module.exports={
+    b:'bbbb',
+    a:a
+}
+```
+* mod目录下面的b.js使用了a.js，app目录下面的index.js使用了mod目录下的b.js。
+```js
+var obj=require('../mod/b.js')
+//这里不用使用点了，因为是在b.js里面的对象
+// module.exports={
+    // b:'bbbb',
+    // a:a
+// }
+console.log(obj)
+```
+* 需要把src里面的app目录下的index.js打包放到public的js目录下面。
+* 接下来要在src目录下创建一个webpack.config.js文件
+* [path（路径）](http://nodejs.cn/api/path.html#path_path)是node.js的内置模块，不需要安装
+* 因为要用到webpack,所以先要安装，为了和老师版本一样我就安装了2.2.1版本，[更新版本的安装就看这里](https://www.webpackjs.com/guides/installation/)
+```sh
+npm install -dev webpack@2.2.1
+```
+* 然后切换到src目录下面运行，因为是局部安装所以要使用npx。
+```sh
+npx webpack
+```
+* 运行后
+```sh
+$ npx webpack
+Hash: 4168577e47e5ac05297a
+Version: webpack 2.2.1
+Time: 58ms
+      Asset    Size  Chunks             Chunk Names
+js/index.js  3.1 kB       0  [emitted]  main
+   [0] ./js/mod/a.js 23 bytes {0} [built]
+   [1] ./js/mod/b.js 159 bytes {0} [built]
+   [2] ./js/app/index.js 130 bytes {0} [built]
+```
+* 这里贾三了文件012，如果只有一个文件，那就代表有三个中有两个文件加载失败。
+* 我们打开public目录下面的js文件夹下的index.js，在最后可以看到包括了a.js,b.js和app目录下的index.js内容。所以代表webpack是没有问题的.
+```js
+/***/ (function(module, exports) {
+
+module.exports.a='aaaa'//这是a.js的内容
+
+/***/ }),
+/* 1 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var a=__webpack_require__(0).a//因为a.js里面exports出去的是一个对象也就是module.exports。我们需要用到里面的a属性，就是这么写
+var a1=__webpack_require__(0)
+
+module.exports={//这是b.js内容
+    b:'bbbb',
+    a:a
+}
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var obj=__webpack_require__(1)//这是app目录下的index.js内容
+//这里不用使用点了因为是在b.js里面的对象
+// module.exports={
+    // b:'bbbb',
+    // a:a
+// }
+console.log(obj)
+
+/***/ })
+/******/ ]);
+```
+* 通过help命令查看更多命令，当然可以在[官网查看这些命令](https://www.webpackjs.com/api/cli/#%E5%B8%B8%E7%94%A8%E9%85%8D%E7%BD%AE)
+```sh
+$ npx webpack -help
+webpack 2.2.1
+Usage: https://webpack.github.io/docs/cli.html
+Usage without config file: webpack <entry> [<entry>] <output>
+Usage with config file: webpack
+
+Config options:
+  --config  Path to the config file
+                          [字符串] [默认值: webpack.config.js or webpackfile.js]
+  --env     Enviroment passed to the config, when it is a function
+
+Basic options:
+  --context    The root directory for resolving entry point and stats
+                                        [字符串] [默认值: The current directory]
+  --entry      The entry point                                          [字符串]
+  --watch, -w  Watch the filesystem for changes                           [布尔]
+  --debug      Switch loaders to debug mode                               [布尔]
+  --devtool    Enable devtool for better debugging experience (Example:
+               --devtool eval-cheap-module-source-map)                  [字符串]
+  -d           shortcut for --debug --devtool eval-cheap-module-source-map
+               --output-pathinfo                                          [布尔]
+  -p           shortcut for --optimize-minimize --define
+               process.env.NODE_ENV="production"                          [布尔]
+  --progress   Print compilation progress in percentage                   [布尔]
+
+Module options:
+  --module-bind       Bind an extension to a loader                     [字符串]
+  --module-bind-post                                                    [字符串]
+  --module-bind-pre                                                     [字符串]
+
+Output options:
+  --output-path                 The output path for compilation assets
+                                        [字符串] [默认值: The current directory]
+  --output-filename             The output filename of the bundle
+                                                    [字符串] [默认值: [name].js]
+  --output-chunk-filename       The output filename for additional chunks
+        [字符串] [默认值: filename with [id] instead of [name] or [id] prefixed]
+  --output-source-map-filename  The output filename for the SourceMap   [字符串]
+  --output-public-path          The public path for the assets          [字符串]
+  --output-jsonp-function       The name of the jsonp function used for chunk
+                                loading                                 [字符串]
+  --output-pathinfo             Include a comment with the request for every
+                                dependency (require, import, etc.)        [布尔]
+  --output-library              Expose the exports of the entry point as library
+                                                                        [字符串]
+  --output-library-target       The type for exposing the exports of the entry
+                                point as library                        [字符串]
+
+Advanced options:
+  --records-input-path       Path to the records file (reading)         [字符串]
+  --records-output-path      Path to the records file (writing)         [字符串]
+  --records-path             Path to the records file                   [字符串]
+  --define                   Define any free var in the bundle          [字符串]
+  --target                   The targeted execution enviroment          [字符串]
+  --cache                    Enable in memory caching
+                          [布尔] [默认值: It's enabled by default when watching]
+  --watch-stdin, --stdin     Exit the process when stdin is closed        [布尔]
+  --watch-aggregate-timeout  Timeout for gathering changes while watching
+  --watch-poll               The polling interval for watching (also enable
+                             polling)                                     [布尔]
+  --hot                      Enables Hot Module Replacement               [布尔]
+  --prefetch                 Prefetch this request (Example: --prefetch
+                             ./file.js)                                 [字符串]
+  --provide                  Provide these modules as free vars in all modules
+                             (Example: --provide jQuery=jquery)         [字符串]
+  --labeled-modules          Enables labeled modules                      [布尔]
+  --plugin                   Load this plugin                           [字符串]
+  --bail                     Abort the compilation on first error         [布尔]
+  --profile                  Profile the compilation and include information in
+                             stats                                        [布尔]
+
+Resolving options:
+  --resolve-alias         Setup a module alias for resolving (Example:
+                          jquery-plugin=jquery.plugin)                  [字符串]
+  --resolve-extensions    Setup extensions that should be used to resolve
+                          modules (Example: --resolve-extensions .es6 .js)[数组]
+  --resolve-loader-alias  Setup a loader alias for resolving            [字符串]
+
+Optimizing options:
+  --optimize-max-chunks      Try to keep the chunk count below a limit
+  --optimize-min-chunk-size  Try to keep the chunk size above a limit
+  --optimize-minimize        Minimize javascript and switches loaders to
+                             minimizing                                   [布尔]
+
+Stats options:
+  --color, --colors           Enables/Disables colors on the console
+                                               [布尔] [默认值: (supports-color)]
+  --sort-modules-by           Sorts the modules list by property in module
+                                                                        [字符串]
+  --sort-chunks-by            Sorts the chunks list by property in chunk[字符串]
+  --sort-assets-by            Sorts the assets list by property in asset[字符串]
+  --hide-modules              Hides info about modules                    [布尔]
+  --display-exclude           Exclude modules in the output             [字符串]
+  --display-modules           Display even excluded modules in the output [布尔]
+  --display-max-modules       Sets the maximum number of visible modules in
+                              output                                      [数字]
+  --display-chunks            Display chunks in the output                [布尔]
+  --display-entrypoints       Display entry points in the output          [布尔]
+  --display-origins           Display origins of chunks in the output     [布尔]
+  --display-cached            Display also cached modules in the output   [布尔]
+  --display-cached-assets     Display also cached assets in the output    [布尔]
+  --display-reasons           Display reasons about module inclusion in the
+                              output                                      [布尔]
+  --display-depth             Display distance from entry point for each module
+                                                                          [布尔]
+  --display-used-exports      Display information about used exports in modules
+                              (Tree Shaking)                              [布尔]
+  --display-provided-exports  Display information about exports provided from
+                              modules                                     [布尔]
+  --display-error-details     Display details about errors                [布尔]
+  --verbose                   Show more details                           [布尔]
+
+选项：
+  --help, -h     显示帮助信息                                             [布尔]
+  --version, -v  显示版本号                                               [布尔]
+  --json, -j     Prints the result as JSON.                               [布尔]
+
+```
+* 我们在script中配置config。这样就可以在当前文件夹去执行，可以自动切换到src目录下面去webpack。`--config`是配置文件的路径，默认是`webpack.config.js 或 webpackfile.js`
+```js
+  "scripts": {
+    "start": "set PORT=8080 & node ./bin/www",
+    "webpack": "webpack --config=src/webpack.config.js"
+    // 也可以不要等号 "webpack": "webpack --config src/webpack.config.js"
+  },
+```
+### 安装onchange实现代码变动自动编译打包
+* [onchange](https://www.npmjs.com/package/onchange)就是当某些文件改动的时候，就直接执行某个命令.
+* **注意：Windows用户可能需要使用双引号而不是单引号。如果在npm脚本中使用，请记住转义双引号。**
+* [npm插件“ onchange”无法识别scss文件更改](https://stackoverflow.com/questions/37261016/npm-plugin-onchange-does-not-recognize-scss-files-changes)
+```sh
+npm install onchange --dev
+```
+* 然后在script中增加watch
+```sh
+  "scripts": {
+    "start": "set PORT=8080 & node ./bin/www",
+    "webpack": "webpack --config=src/webpack.config.js",
+    "watch": "onchange \"src/**/*.js\" \"src/**/*.less\" -- npm run webpack"
+  },
+```
+* 只要src目录下面的后缀为js和less的文件发生变动就去执行后面的代码`npm run webpack`，也就是只要代码变动就会自动去打包。
+* `src/**/*.js`代表src下面的所有js作为后缀的目录，`/**/*.js`不管层级有多深都全都选中。如果是`/*.js`只是当前路径下的后缀js文件。
 ## 其他
 ### 小技巧安装nrm切换源
 * [npr文档](https://www.npmjs.com/package/nrm)
@@ -615,8 +875,15 @@ Commands:
 ```
 * 更多用法看[npr文档](https://www.npmjs.com/package/nrm)
 * 以前我做过一个笔记，就是需要发布npm包的时候需要用到真实的npm地址，就需要切换到npm源，前面的[笔记](https://github.com/bomber063/DIY-UI-frame-by-Vue)
-
-
+### 切换不同的node.js版本
+* 可以安装一个[n的依赖](https://www.npmjs.com/package/n)
+* [node 版本切换工具 n 的使用](https://www.jianshu.com/p/a2ee8f61a8ca)
+```sh
+npm install n
+```
+* 但是在window里面可能不支持——[node.js使用npm install -g n更新node失败的问题](https://ask.csdn.net/questions/260842)
+* [node 版本切换工具 n 的使用](https://www.jianshu.com/p/a2ee8f61a8ca)
+* [npm install -g n 运行错误](https://blog.csdn.net/J_Y_X_8/article/details/71191493)
 ### git hub命令创建分支使用
 * 创建一个分支teach，同时切换到这个teach分支上，更多解释看[这里explainshell](https://explainshell.com/explain?cmd=git+checkout+-b+teach)
 ```sh
