@@ -1,7 +1,4 @@
-var obj=require('../mod/b.js')
-//这里不用使用点了因为是在b.js里面的对象
-// module.exports={
-    // b:'bbbb',
-    // a:a
-// }
-console.log(obj)
+var Toast=require('../mod/toast.js').Toast//因为require()返回的是module.exports对象，但是我们需要里面的Toast属性
+
+Toast('hello world')
+

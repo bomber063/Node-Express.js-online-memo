@@ -15,26 +15,36 @@ module.exports = {
         path: path.join(__dirname, "../public"),//https://www.webpackjs.com/configuration/output/#output-path
         filename: "js/index.js"//输出的文件名字是index.js,https://www.webpackjs.com/configuration/output/#output-filename
     },
-    // module: {
-    //     rules: [{
-    //         test: /\.less$/,
-    //         use: ExtractTextPlugin.extract({
-    //                 fallback: "style-loader",
-    //                 use: ["css-loader", "less-loader", "postcss-loader"]
-    //             }) //把 css 抽离出来生成一个文件
-    //     }]
-    // },
-    // resolve: {
-    //     alias: {
-    //         jquery: path.join(__dirname, "js/lib/jquery-2.0.3.min.js"),
-    //         mod: path.join(__dirname, "js/mod"),
-    //         less: path.join(__dirname, "less")
-    //     }
-    // },
-    // plugins: [
-    //     new webpack.ProvidePlugin({
-    //         $: "jquery"
-    //     }),
+    module: {
+        rules: [{
+            test: /\.less$/,//这里用到正则,点在正则里面有特别的意义，所以需要斜杆来转义为自己的点的意思，也就是字面字符 '.'
+            // \.less$表示匹配字符结束为.less,匹配输入的结束
+            // use: ExtractTextPlugin.extract({
+                    // fallback: "style-loader",
+                    // use: ["style-loader","css-loader", "less-loader", "postcss-loader"]
+                    use: ["style-loader","css-loader", "less-loader"]//这个数组是从右往左的顺序执行加载loader.
+                    // postcss-loader是加前缀的https://www.jianshu.com/p/e7b42055ee5c，这个我没有增加。
+                    // less-loader官网的意思是把less编译为css,https://www.npmjs.com/package/less-loader
+                    // css-loader根据官网解释是处理import和url这样的外部资源https://www.npmjs.com/package/css-loader
+                    // 另一个博客解释https://www.cnblogs.com/wtsx-2019/p/12483265.html
+                    //style-loader官网说的是把它放到页面DOM上。https://www.npmjs.com/package/style-loader
+                    // 另一个博客解释 https://www.cnblogs.com/wtsx-2019/p/12483265.html
+                // }) //把 css 抽离出来生成一个文件
+        }]
+    },
+    resolve: {
+        alias: {
+            jquery: path.join(__dirname, "js/lib/jquery-2.0.3.min.js"),
+            mod: path.join(__dirname, "js/mod"),
+            less: path.join(__dirname, "less")
+        }
+    },
+    plugins: [
+        new webpack.ProvidePlugin({
+            $: "jquery"
+            // $: "../lib/jquery-2.0.3.min.js"
+            // $: "./js/lib/jquery-2.0.3.min.js"
+        }),
     //     new ExtractTextPlugin("css/index.css"),
     //     new webpack.LoaderOptionsPlugin({
     //         options: {
@@ -51,5 +61,5 @@ module.exports = {
     //     //         comments: false,
     //     //     },
     //     // }),
-    // ]
+    ]
 };

@@ -802,6 +802,248 @@ npm install onchange --dev
 ```
 * 只要src目录下面的后缀为js和less的文件发生变动就去执行后面的代码`npm run webpack`，也就是只要代码变动就会自动去打包。
 * `src/**/*.js`代表src下面的所有js作为后缀的目录，`/**/*.js`不管层级有多深都全都选中。如果是`/*.js`只是当前路径下的后缀js文件。
+## 组件
+### toast组件
+* toast组件提示功能。在mod文件夹里面创建toast.js文件，因为用到了[JQuery](https://www.jquery123.com/html/)，所以把Jquery的代码引入到lib里面去。最后toast的代码为
+```js
+// require('less/toast.less');
+var $=require('../lib/jquery-2.0.3.min.js')
+
+function toast(msg, time){
+  this.msg = msg;//消息内容
+  this.dismissTime = time||1000;  //ms 消失的事件
+  this.createToast();//创建toast节点函数
+  this.showToast();//显示toast节点函数
+}
+toast.prototype = {
+  createToast: function(){
+    var tpl = '<div class="toast">'+this.msg+'</div>';
+    this.$toast = $(tpl);
+    $('body').append(this.$toast);
+  },
+  showToast: function(){
+    var self = this;//这里要把this赋值给self，因为在下面的函数里面的this已经改变掉了
+    console.log(self,'我是self')
+    this.$toast.fadeIn(300, function(){//默认是隐藏的，300ms后出现
+        console.log(self,'我是fadeIn里面的self')
+        console.log(this,'我是fadeIn里面的this')
+      setTimeout(function(){
+         self.$toast.fadeOut(300,function(){//消失之后再过300ms后删除
+            console.log(self,'我是fadeOut里面的self')
+            console.log(this,'我是fadeOut里面的this')
+           self.$toast.remove();
+         });
+      }, self.dismissTime);//dismissTime后消失
+    });
+
+  }
+};
+
+function Toast(msg,time){
+  return new toast(msg, time);
+}
+
+window.Toast=Toast
+console.log(Toast(),'我是Toast')
+
+module.exports.Toast = Toast;
+//不能module.exports= Toast; 因为左边的module.exports是一个对象，而右边的Toast是一个函数，如果Toast是一个对象那就可以赋值
+```
+### Jquery的API
+* 这里用到Jquery的API
+  * 核心方法[jQuery()](https://www.w3school.com.cn/jquery/core_jquery.asp),可以直接在里面写html模板
+  * [append() - 在被选元素的结尾插入内容](https://www.w3school.com.cn/jquery/jquery_dom_add.asp)
+  * [jQuery 效果 - 淡入jQuery fadeIn()](https://www.w3school.com.cn/jquery/jquery_fade.asp)
+  * [jQuery 效果 - 淡出jQuery fadeOut()](https://www.w3school.com.cn/jquery/jquery_fade.asp)
+* 另外需要注意this经过函数之后是由变化的，请看下面结果，经过函数之后，this变为变化的DOM元素，而之前的this是整个toast对象。
+```js
+toast {msg: undefined, dismissTime: 1000, $toast: init(1)} "我是self"
+index.js:92 toast {msg: undefined, dismissTime: 1000, $toast: init(1)} "我是fadeIn里面的self"
+index.js:93 <div class=​"toast">​undefined​</div>​ "我是fadeIn里面的this"
+index.js:111 toast {msg: undefined, dismissTime: 1000, $toast: init(1)} "我是Toast"
+index.js:90 toast {msg: "hello world", dismissTime: 1000, $toast: init(1)} "我是self"
+index.js:92 toast {msg: "hello world", dismissTime: 1000, $toast: init(1)} "我是fadeIn里面的self"
+index.js:93 <div class=​"toast">​hello world​</div>​ "我是fadeIn里面的this"
+index.js:96 toast {msg: undefined, dismissTime: 1000, $toast: init(1)} "我是self"
+index.js:97 <div class=​"toast" style=​"display:​ none;​">​undefined​</div>​ "我是fadeOut里面的this"
+index.js:96 toast {msg: "hello world", dismissTime: 1000, $toast: init(1)} "我是self"
+index.js:97 <div class=​"toast" style=​"display:​ none;​">​hello world​</div>​ "我是fadeOut里面的this"
+```
+### webpack的resolve
+* 引入文件的写法有点麻烦
+```js
+var $=require('../lib/jquery-2.0.3.min.js')
+```
+* 我们通过修改webpack.config.js文件的[resolve](https://www.webpackjs.com/configuration/resolve/#resolve)来处理
+```js
+    resolve: {
+        alias: {
+            jquery: path.join(__dirname, "js/lib/jquery-2.0.3.min.js"),//如果引用的是jquery，那么就是后面的代码，当前目录加上js/lib/jquery-2.0.3.min.js,下面的一样
+            mod: path.join(__dirname, "js/mod"),
+            less: path.join(__dirname, "less")
+        }
+    },
+```
+* 这样我们引入就可以简化为
+```js
+// var $=require('../lib/jquery-2.0.3.min.js')
+var $=require('jquery')//如果不写前面的额resolve，默认会去从node_modules里面去找
+```
+* 如果不写前面的额resolve，默认会去从node_modules里面去找
+### 更简化，使用插件ProvidePlugin
+* 使用插件ProvidePlugin就可以自动加载模块，**而不必到处 import 或 require**。
+* 在webpack.config.js里面增加
+```js
+    plugins: [
+        new webpack.ProvidePlugin({
+            $: "jquery"
+        })
+    ]
+```
+* 用了上面的插件之后就可以不用写下面require代码啦
+```js
+var $=require('jquery')
+```
+* 因为前面的resolve的alias已经定义了别名，所以可以直接使用jquery。**如果没有定义别名需要从mod目录的的toast.js里面开始找到jquery代码**，那么就应该这么写,他是从使用$这个变量的地方开始引入，这里用的是mod下面的toast.js文件开始起步查找jquery-2.0.3.min.js
+```js
+    plugins: [
+        new webpack.ProvidePlugin({
+            // $: "jquery"
+            $: "../lib/jquery-2.0.3.min.js"
+        }),
+    ]
+```
+### less文件增加样式
+* 并在less文件夹中创建toast.less
+```less
+.toast {
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 20px;
+    color: #D15A39;
+    background: #fff;
+    padding: 5px 10px;
+    border-radius: 3px;
+    box-shadow: 0px 0px 3px 1px rgba(255,255,255,0.6);
+    display: none;
+}
+```
+* 我们在webpack.config.js里面配置了别名less
+```js
+    resolve: {
+        alias: {
+            jquery: path.join(__dirname, "js/lib/jquery-2.0.3.min.js"),
+            mod: path.join(__dirname, "js/mod"),
+            less: path.join(__dirname, "less")
+        }
+    },
+```
+* 那么在toast.less文件里面**开头以less开头引入就会自动导入**
+```js
+require('less/toast.less');
+```
+### 安装less等依赖,主要less-loader 版本过高会报错
+* 因为用到了less，首先我们需要先安装下面的依赖
+```
+$ npm i --dev css-loader less-loader less style-loader
++ less-loader@6.2.0
++ css-loader@3.6.0
++ less@3.11.3
++ style-loader@1.2.1
+```
+* 注意这里的less-loader版本过高会报错如下
+```sh
+ERROR in ./~/css-loader/dist/cjs.js!./~/less-loader/dist/cjs.js!./src/less/toast.less
+Module build failed: TypeError: loaderContext.getResolve is not a function
+```
+* 修改为版本+ less-loader@4.1.0就可以解决了
+```sh
++ less-loader@4.1.0
+```
+* 这个问题[我之前自己也碰到过](https://github.com/bomber063/Multiplayer-Sharing-blogs-for-Vue)
+* 另外我也有别人碰到和我一样的问题也记录了
+  * [Vue 中使用 less 报错 Module build failed: TypeError: loaderContext.getResolve is not a function](https://blog.csdn.net/wxx_csdn/article/details/105807127)
+  * [Module build failed: TypeError: loaderContext.getResolve is not a function](https://www.cnblogs.com/zmdComeOn/p/12926330.html)
+  * [vue---使用less报错 Module build failed: TypeError: loaderContext.getResolve is not a function](https://blog.csdn.net/maidu_xbd/article/details/105779377)
+### webpack的Rule.test和Rule.use
+* 因为less在webpack里面是无法读取的，需要经过loader才可以，所以需要在webpack.config.js里面使用[Rule.use](https://www.webpackjs.com/configuration/module/#rule-use)和[Rule.test](https://www.webpackjs.com/configuration/module/#rule-test)
+* test是匹配条件
+  * Rule.test 是 Rule.resource.test 的简写。如果你提供了一个 Rule.test 选项，就不能再提供 Rule.resource。详细请查看 Rule.resource 和 Condition.test。
+* 条件
+[条件](https://www.webpackjs.com/configuration/module/#%E6%9D%A1%E4%BB%B6)可以是这些之一：
+
+字符串：匹配输入必须以提供的字符串开始。是的。目录绝对路径或文件绝对路径。
+正则表达式：test 输入值。
+函数：调用输入的函数，必须返回一个真值(truthy value)以匹配。
+条件数组：至少一个匹配条件。
+对象：匹配所有属性。每个属性都有一个定义行为。
+{ test: Condition }：匹配特定条件。一般是提供一个正则表达式或正则表达式的数组，但这不是强制的。
+
+{ include: Condition }：匹配特定条件。一般是提供一个字符串或者字符串数组，但这不是强制的。
+
+{ exclude: Condition }：排除特定条件。一般是提供一个字符串或字符串数组，但这不是强制的。
+
+{ and: [Condition] }：必须匹配数组中的所有条件
+
+{ or: [Condition] }：匹配数组中任何一个条件
+
+{ not: [Condition] }：必须排除这个条件
+* Rule.use应用于模块的 UseEntries 列表。每个入口(entry)指定使用一个 loader。可以有options可选项。
+* 代码增加如下
+```js
+    module: {
+        rules: [{
+            test: /\.less$/,//这里用到正则,点在正则里面有特别的意义，所以需要斜杆来转义为自己的点的意思，也就是字面字符 '.'
+            // \.less$表示匹配字符结束为.less,匹配输入的结束
+            use: ["style-loader","css-loader", "less-loader"]//这个数组是从右往左的顺序执行加载loader.
+            // postcss-loader是加前缀的https://www.jianshu.com/p/e7b42055ee5c，这个我没有增加。
+            // less-loader官网的意思是把less编译为css,https://www.npmjs.com/package/less-loader
+            // css-loader根据官网解释是处理import和url这样的外部资源https://www.npmjs.com/package/css-loader
+            // 另一个博客解释https://www.cnblogs.com/wtsx-2019/p/12483265.html
+            //style-loader官网说的是把它放到页面DOM上。https://www.npmjs.com/package/style-loader
+            // 另一个博客解释 https://www.cnblogs.com/wtsx-2019/p/12483265.html
+        }]
+    },
+```
+* `test: /\.less$/`这里用到正则,点在正则里面有特别的意义，所以需要斜杆来转义为自己的点的意思，也就是字面字符 '.',`\.less$`表示匹配字符结束为.less,匹配输入的结束
+* `use: ["style-loader","css-loader", "less-loader"]`这个数组是**从右往左的顺序执行加载**loader.
+  * [postcss-loader](https://www.npmjs.com/package/postcss-loader)是加前缀的,可以看这里的[说明](https://www.jianshu.com/p/e7b42055ee5c)，这个我没有增加。
+  * [less-loader](https://www.npmjs.com/package/less-loader)官网的意思是把less编译为css,
+  * [css-loader](https://www.npmjs.com/package/css-loader)根据官网解释是处理import和url这样的外部资源,另一个[博客解释](https://www.cnblogs.com/wtsx-2019/p/12483265.html)
+  * [style-loader](https://www.npmjs.com/package/style-loader)官网说的是把它放到页面DOM上。另一个[博客解释](https://www.cnblogs.com/wtsx-2019/p/12483265.html) 
+### less语法学习
+* [less](https://less.bootcss.com/)（Leaner Style Sheets 的缩写） 是一门向后兼容的 CSS 扩展语言。这里呈现的是 Less 的官方文档（中文版），包含了 Less 语言以及利用 JavaScript 开发的用于将 Less 样式转换成 CSS 样式的 Less.js 工具。它也是**预编译**,也就是用之前需要提前编译一次，转化为CSS才可以使用。
+  * [变量](https://less.bootcss.com/#%E5%8F%98%E9%87%8F%EF%BC%88variables%EF%BC%89)，它的好处就是如果网站风格发生改变，不需要改变太多地方，只需要修改这个变量就可以了。甚至可以让用户自己配置颜色，用户设置了变量未某个颜色，那么就显示某个颜色。
+  * [混合](https://less.bootcss.com/#%E6%B7%B7%E5%90%88%EF%BC%88mixins%EF%BC%89)，有一些样式需要很多前缀，那么这个就比较方便。混合（Mixin）是一种将一组属性从一个规则集包含（或混入）到另一个规则集的方法，**类似于定义一个函数，函数里面还有一个默认值，然后使用函数名字就可以**
+  * [嵌套](https://less.bootcss.com/#%E5%B5%8C%E5%A5%97%EF%BC%88nesting%EF%BC%89)代替层叠或与层叠结合使用的能力,也就是大括号里面可以继续写大括号。
+  * [运算](https://less.bootcss.com/#%E8%BF%90%E7%AE%97%EF%BC%88operations%EF%BC%89)可以对任何数字、颜色或变量进行运算，定义好基准变量，后面就可以通过运算符去使用了。
+  * [浏览器使用](https://less.bootcss.com/usage/#browser-usage)，就通过下面引入
+    ```html
+      <link rel="stylesheet/less" type="text/css" href="styles.less" />
+      <script src="less.js" type="text/javascript"></script>
+    ```
+      * 但是一般我们不这么使用，因为还要浏览器去解析处理less.js和转换为为css代码。一般源代码我们用less，但是编写打包后是css，当用户看到的时候就是css
+* [less老的文档](https://www.bootcss.com/p/lesscss/),这里面说的可以在 客户端 上运行是需要把less语法转换为css才可以在客户端运行。
+* 普通的css是不可以定义变量，类似JS那样去编程的，但是less可以。
+* src目录创建test.html就可以测试了
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    
+    <script src="/js/index.js"></script>
+</body>
+</html>
+```
+## 瀑布流布局
+* 
+
 ## 其他
 ### 小技巧安装nrm切换源
 * [npr文档](https://www.npmjs.com/package/nrm)
