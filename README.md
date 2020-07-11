@@ -849,7 +849,7 @@ console.log(Toast(),'我是Toast')
 module.exports.Toast = Toast;
 //不能module.exports= Toast; 因为左边的module.exports是一个对象，而右边的Toast是一个函数，如果Toast是一个对象那就可以赋值
 ```
-### Jquery的API
+#### Jquery的API
 * 这里用到Jquery的API
   * 核心方法[jQuery()](https://www.w3school.com.cn/jquery/core_jquery.asp),可以直接在里面写html模板
   * [append() - 在被选元素的结尾插入内容](https://www.w3school.com.cn/jquery/jquery_dom_add.asp)
@@ -869,7 +869,7 @@ index.js:97 <div class=​"toast" style=​"display:​ none;​">​undefined�
 index.js:96 toast {msg: "hello world", dismissTime: 1000, $toast: init(1)} "我是self"
 index.js:97 <div class=​"toast" style=​"display:​ none;​">​hello world​</div>​ "我是fadeOut里面的this"
 ```
-### webpack的resolve
+#### webpack的resolve
 * 引入文件的写法有点麻烦
 ```js
 var $=require('../lib/jquery-2.0.3.min.js')
@@ -890,7 +890,7 @@ var $=require('../lib/jquery-2.0.3.min.js')
 var $=require('jquery')//如果不写前面的额resolve，默认会去从node_modules里面去找
 ```
 * 如果不写前面的额resolve，默认会去从node_modules里面去找
-### 更简化，使用插件ProvidePlugin
+#### 更简化，使用插件ProvidePlugin
 * 使用插件ProvidePlugin就可以自动加载模块，**而不必到处 import 或 require**。
 * 在webpack.config.js里面增加
 ```js
@@ -913,7 +913,7 @@ var $=require('jquery')
         }),
     ]
 ```
-### less文件增加样式
+#### less文件增加样式
 * 并在less文件夹中创建toast.less
 ```less
 .toast {
@@ -943,7 +943,7 @@ var $=require('jquery')
 ```js
 require('less/toast.less');
 ```
-### 安装less等依赖,主要less-loader 版本过高会报错
+#### 安装less等依赖,主要less-loader 版本过高会报错
 * 因为用到了less，首先我们需要先安装下面的依赖
 ```
 $ npm i --dev css-loader less-loader less style-loader
@@ -966,7 +966,7 @@ Module build failed: TypeError: loaderContext.getResolve is not a function
   * [Vue 中使用 less 报错 Module build failed: TypeError: loaderContext.getResolve is not a function](https://blog.csdn.net/wxx_csdn/article/details/105807127)
   * [Module build failed: TypeError: loaderContext.getResolve is not a function](https://www.cnblogs.com/zmdComeOn/p/12926330.html)
   * [vue---使用less报错 Module build failed: TypeError: loaderContext.getResolve is not a function](https://blog.csdn.net/maidu_xbd/article/details/105779377)
-### webpack的Rule.test和Rule.use
+#### webpack的Rule.test和Rule.use
 * 因为less在webpack里面是无法读取的，需要经过loader才可以，所以需要在webpack.config.js里面使用[Rule.use](https://www.webpackjs.com/configuration/module/#rule-use)和[Rule.test](https://www.webpackjs.com/configuration/module/#rule-test)
 * test是匹配条件
   * Rule.test 是 Rule.resource.test 的简写。如果你提供了一个 Rule.test 选项，就不能再提供 Rule.resource。详细请查看 Rule.resource 和 Condition.test。
@@ -1006,13 +1006,13 @@ Module build failed: TypeError: loaderContext.getResolve is not a function
         }]
     },
 ```
-* `test: /\.less$/`这里用到正则,点在正则里面有特别的意义，所以需要斜杆来转义为自己的点的意思，也就是字面字符 '.',`\.less$`表示匹配字符结束为.less,匹配输入的结束
+* `test: /\.less$/`这里用到[正则](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Guide/Regular_Expressions),点在正则里面有特别的意义，所以需要斜杆来转义为自己的点的意思，也就是字面字符 '.',`\.less$`表示匹配字符结束为.less,匹配输入的结束
 * `use: ["style-loader","css-loader", "less-loader"]`这个数组是**从右往左的顺序执行加载**loader.
   * [postcss-loader](https://www.npmjs.com/package/postcss-loader)是加前缀的,可以看这里的[说明](https://www.jianshu.com/p/e7b42055ee5c)，这个我没有增加。
   * [less-loader](https://www.npmjs.com/package/less-loader)官网的意思是把less编译为css,
   * [css-loader](https://www.npmjs.com/package/css-loader)根据官网解释是处理import和url这样的外部资源,另一个[博客解释](https://www.cnblogs.com/wtsx-2019/p/12483265.html)
   * [style-loader](https://www.npmjs.com/package/style-loader)官网说的是把它放到页面DOM上。另一个[博客解释](https://www.cnblogs.com/wtsx-2019/p/12483265.html) 
-### less语法学习
+#### less语法学习
 * [less](https://less.bootcss.com/)（Leaner Style Sheets 的缩写） 是一门向后兼容的 CSS 扩展语言。这里呈现的是 Less 的官方文档（中文版），包含了 Less 语言以及利用 JavaScript 开发的用于将 Less 样式转换成 CSS 样式的 Less.js 工具。它也是**预编译**,也就是用之前需要提前编译一次，转化为CSS才可以使用。
   * [变量](https://less.bootcss.com/#%E5%8F%98%E9%87%8F%EF%BC%88variables%EF%BC%89)，它的好处就是如果网站风格发生改变，不需要改变太多地方，只需要修改这个变量就可以了。甚至可以让用户自己配置颜色，用户设置了变量未某个颜色，那么就显示某个颜色。
   * [混合](https://less.bootcss.com/#%E6%B7%B7%E5%90%88%EF%BC%88mixins%EF%BC%89)，有一些样式需要很多前缀，那么这个就比较方便。混合（Mixin）是一种将一组属性从一个规则集包含（或混入）到另一个规则集的方法，**类似于定义一个函数，函数里面还有一个默认值，然后使用函数名字就可以**
@@ -1040,6 +1040,106 @@ Module build failed: TypeError: loaderContext.getResolve is not a function
     <script src="/js/index.js"></script>
 </body>
 </html>
+```
+* 现在这个toast组件就完成了，有样式也有交互，而且通过`Toast()`可以直接调用.
+### event 事件中心发布订阅组件
+* 具体代码及代码注释
+```js
+
+  var EventCenter = (function(){
+
+    var events = {};
+
+    function on(evt, handler){//绑定事件函数，evt是某一个事件名字，handler是事件执行函数
+      events[evt] = events[evt] || []; //如果传过来的参数events[evt]事件里面没有，那创建一个空数组赋值，如果events[evt]事件里面已经有一个自己的事件了，就为自己
+
+      events[evt].push({//往前面创建的空数组  或者已经存在的数组里面的events[evt]里面尾部push事件
+        handler111: handler//events[evt]事件的名字都是handler111，里面的执行函数是传过来的handler
+      });
+    }
+
+    function fire(evt, args){//触发事件函数
+        console.log(args,'args')
+      if(!events[evt]){
+        return;
+      }
+      for(var i=0; i<events[evt].length; i++){
+        //   console.log(events)//events是一个对象
+        //   console.log(events[evt])//events[evt]是一个数组
+          console.log(events[evt][i].handler111,'handler111')
+          console.log(events[evt][i].handler111(),'handler111()')
+          console.log(events[evt][i].handler111(args),'handler111(args)')
+          //这里的args是绑定事件on里面传参用的，绑定事件里面的handles里面的参数。
+        events[evt][i].handler111(args);//events[evt][i]是因为，如果是同一个事件被多次使用就会出现[i]这个选项。如果只有一次，那么i从0开始计数就结束了。
+      }
+      
+    }
+
+    return {
+      on: on,
+      fire: fire
+    }
+  })();
+
+  module.exports = EventCenter;//因为EventCenter本身是一个对象，所以可以直接赋值给modules.exports
+  // EventCenter.on('text-change', function(data){
+  //  console.log(data);
+  // });
+  
+  // EventCenter.on('text-change', function(data){
+  //  alert(1);
+  // });
+  
+
+  // EventCenter.fire('text-change', 100);
+
+```
+* 这个地方的**fire是触发事件**，第二个参数的意思是给绑定的on传递一个额外的参数，比如我在app.js里面的index.js代码是这样的
+```js
+var Toast=require('../mod/toast.js').Toast//因为require()返回的是module.exports对象，但是我们需要里面的Toast属性
+var event=require('../mod/event.js')
+
+Toast('hello world')
+
+
+event.on('click',function(a){
+    return a+' click第一次'
+})
+
+event.on('click',function(a){
+    return a+' click第二次'
+})
+
+
+event.on('touch',function (a){
+    return a+' touch第一次'
+})
+
+event.fire('click','click-a')
+
+event.fire('touch','touch-b')
+```
+* 那么最后执行的时候会把这个fire里面的第二个参数`click-a`和`touch-b`传入进去，可以看到前面的fire函数里面的`console.log()`输出的结果,可以看到如果不加args会出现undefined，**因为前面的on绑定的函数里面有形参**
+```sh
+click-a args
+index.js:94 ƒ (a){
+
+    return a+' click第一次'
+} "handler111"
+index.js:95 undefined click第一次 handler111()
+index.js:96 click-a click第一次 handler111(args)
+index.js:94 ƒ (a){
+    // console.log(a)
+    return a+' click第二次'
+} "handler111"
+index.js:95 undefined click第二次 handler111()
+index.js:96 click-a click第二次 handler111(args)
+index.js:87 touch-b args
+index.js:94 ƒ (a){
+    return a+' touch第一次'
+} "handler111"
+index.js:95 undefined touch第一次 handler111()
+index.js:96 touch-b touch第一次 handler111(args)
 ```
 ## 瀑布流布局
 * 
