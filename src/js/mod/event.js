@@ -12,16 +12,16 @@
     }
 
     function fire(evt, args){//触发事件函数
-        console.log(args,'args')
+        // console.log(args,'args')
       if(!events[evt]){
         return;
       }
       for(var i=0; i<events[evt].length; i++){
         //   console.log(events)//events是一个对象
         //   console.log(events[evt])//events[evt]是一个数组
-          console.log(events[evt][i].handler111,'handler111')
-          console.log(events[evt][i].handler111(),'handler111()')
-          console.log(events[evt][i].handler111(args),'handler111(args)')
+        //   console.log(events[evt][i].handler111,'handler111')
+        //   console.log(events[evt][i].handler111(),'handler111()')
+        //   console.log(events[evt][i].handler111(args),'handler111(args)')
           //这里的args是绑定事件on里面传参用的，绑定事件里面的handles里面的参数。
         events[evt][i].handler111(args);//events[evt][i]是因为，如果是同一个事件被多次使用就会出现[i]这个选项。如果只有一次，那么i从0开始计数就结束了。
       }

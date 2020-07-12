@@ -16,14 +16,14 @@ toast.prototype = {
   },
   showToast: function(){
     var self = this;//这里要把this赋值给self，因为在下面的函数里面的this已经改变掉了
-    console.log(self,'我是self')
+    // console.log(self,'我是self')
     this.$toast.fadeIn(300, function(){//默认是隐藏的，300ms后出现
-        console.log(self,'我是fadeIn里面的self')
-        console.log(this,'我是fadeIn里面的this')
+        // console.log(self,'我是fadeIn里面的self')
+        // console.log(this,'我是fadeIn里面的this')
       setTimeout(function(){
          self.$toast.fadeOut(300,function(){//消失之后再过300ms后删除
-            console.log(self,'我是fadeOut里面的self')
-            console.log(this,'我是fadeOut里面的this')
+            // console.log(self,'我是fadeOut里面的self')
+            // console.log(this,'我是fadeOut里面的this')
            self.$toast.remove();
          });
       }, self.dismissTime);//dismissTime后消失
