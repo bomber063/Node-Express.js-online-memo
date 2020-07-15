@@ -3,7 +3,7 @@ require('less/note.less');
 var Toast = require('./toast.js').Toast;//有一些需要发网络请求，不管成功与否就可以通过Toast给页面展示提示。
 var Event = require('mod/event.js');//主要用到绑定事件和触发事件用，类似发布订阅模式。通过调用别的事件函数，这里就是瀑布流事件waterfall.js，在index.js里面
 // 如果把toast.js也变成一个立即执行函数并返回一个对象，那么也可以通过Event来绑定和触发该toast事件。
-console.log(Event)
+// console.log(Event)
 
 //对于一个note需要大致如下几个参数：
 // 1——id，用于辨别很多便利贴中的哪一个便利贴。
@@ -84,7 +84,7 @@ Note.prototype = {
   },
 
   bindEvent: function () {//绑定事件
-    console.log(this,'this')
+    // console.log(this,'this')
     var self = this,
         $note = this.$note,
         $noteHead = $note.find('.note-head'),
@@ -102,7 +102,7 @@ Note.prototype = {
       // https://www.jquery123.com/data/
       //这里就是把元素$noteCt里面设置一个临时key是before，它的值是$noteCt.html()
       // .html()获取集合中第一个匹配元素的HTML内容，https://www.jquery123.com/html/
-      console.log($noteCt.data('before'),'$noteCt.data(before)')
+      // console.log($noteCt.data('before'),'$noteCt.data(before)')
     }).on('blur paste', function() {//当失去焦点(也就是输入完成后离开输入框)或者粘贴的是时候触发
       // console.log('失去焦点或者粘贴')
       if( $noteCt.data('before') != $noteCt.html() ) {//如果before这个临时key里面的值不等于$noteCt.html()那就按照下面的代码把这个before临时key设置为$noteCt.html()
@@ -123,8 +123,8 @@ Note.prototype = {
       //.offset()在匹配的元素集合中，获取的第一个元素的当前坐标，或设置每一个元素的坐标，坐标相对于文档,.offset()返回一个包含top 和 left属性的对象 。
       //https://www.jquery123.com/offset/
           evtY = e.pageY - $note.offset().top;//evtY 计算事件的触发点在 dialog内部到 dialog 的顶部边缘的距离
-          console.log(e.pageY,'e,pageY')
-          console.log($note.offset().top,'$note.offset().top')
+          // console.log(e.pageY,'e,pageY')
+          // console.log($note.offset().top,'$note.offset().top')
       $note.addClass('draggable').data('evtPos', {x:evtX, y:evtY}); //把事件到 dialog 前面左边和顶部边缘的距离保存下来，保存的key为evtPos,在拖动的过程中增加一个class 为draggable，为了拖动的时候有一个特效，这里就是颜色变浅，也就是透明度变大
       // console.log($('.draggable').data('evtPos'),'$(.draggable).data(evtPos)')
       // console.log($('.draggable').data('pos'),'$(.draggable).data(pos)')

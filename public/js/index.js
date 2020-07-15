@@ -63,7 +63,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 13);
+/******/ 	return __webpack_require__(__webpack_require__.s = 14);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -107,7 +107,7 @@
         //   console.log(events[evt])//events[evt]是一个数组
         //   console.log(events[evt][i].handler111,'handler111')
         //   console.log(events[evt][i].handler111(),'handler111()')
-          console.log(events[evt][i].handler111(args),'handler111(args)')
+          // console.log(events[evt][i].handler111(args),'handler111(args)')
           //这里的args是绑定事件on里面传参用的，绑定事件里面的handles里面的参数。
         events[evt][i].handler111(args);//events[evt][i]是因为，如果是同一个事件被多次使用就会出现[i]这个选项。如果只有一次，那么i从0开始计数就结束了。
       }
@@ -140,57 +140,6 @@
 
 /***/ }),
 /* 2 */
-/***/ (function(module, exports, __webpack_require__) {
-
-/* WEBPACK VAR INJECTION */(function($) {__webpack_require__(10);
-// var $=require('../lib/jquery-2.0.3.min.js')
-// var $=require('jquery')
-
-function toast(msg, time){
-  this.msg = msg;//消息内容
-  this.dismissTime = time||1000;  //ms 消失的事件
-  this.createToast();//创建toast节点函数
-  this.showToast();//显示toast节点函数
-}
-toast.prototype = {
-  createToast: function(){
-    var tpl = '<div class="toast">'+this.msg+'</div>';
-    this.$toast = $(tpl);
-    $('body').append(this.$toast);
-  },
-  showToast: function(){
-    var self = this;//这里要把this赋值给self，因为在下面的函数里面的this已经改变掉了
-    // console.log(self,'我是self')
-    this.$toast.fadeIn(300, function(){//默认是隐藏的，300ms后出现
-        // console.log(self,'我是fadeIn里面的self')
-        // console.log(this,'我是fadeIn里面的this')
-      setTimeout(function(){
-         self.$toast.fadeOut(300,function(){//消失之后再过300ms后删除
-            // console.log(self,'我是fadeOut里面的self')
-            // console.log(this,'我是fadeOut里面的this')
-           self.$toast.remove();
-         });
-      }, self.dismissTime);//dismissTime后消失
-    });
-
-  }
-};
-
-function Toast(msg,time){
-  return new toast(msg, time);
-}
-
-window.Toast=Toast
-// console.log(Toast(),'我是Toast')
-
-module.exports.Toast = Toast;
-//不能module.exports= Toast; 因为左边的module.exports是一个对象，而右边的Toast是一个函数，如果Toast是一个对象那就可以赋值
-
-
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
-
-/***/ }),
-/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -290,7 +239,7 @@ function toComment(sourceMap) {
 }
 
 /***/ }),
-/* 4 */
+/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -565,15 +514,309 @@ module.exports = function (list, options) {
 };
 
 /***/ }),
+/* 4 */
+/***/ (function(module, exports, __webpack_require__) {
+
+/* WEBPACK VAR INJECTION */(function($) {__webpack_require__(10);
+// var $=require('../lib/jquery-2.0.3.min.js')
+// var $=require('jquery')
+
+function toast(msg, time){
+  this.msg = msg;//消息内容
+  this.dismissTime = time||1000;  //ms 消失的事件
+  this.createToast();//创建toast节点函数
+  this.showToast();//显示toast节点函数
+}
+toast.prototype = {
+  createToast: function(){
+    var tpl = '<div class="toast">'+this.msg+'</div>';
+    this.$toast = $(tpl);
+    $('body').append(this.$toast);
+  },
+  showToast: function(){
+    var self = this;//这里要把this赋值给self，因为在下面的函数里面的this已经改变掉了
+    // console.log(self,'我是self')
+    this.$toast.fadeIn(300, function(){//默认是隐藏的，300ms后出现
+        // console.log(self,'我是fadeIn里面的self')
+        // console.log(this,'我是fadeIn里面的this')
+      setTimeout(function(){
+         self.$toast.fadeOut(300,function(){//消失之后再过300ms后删除
+            // console.log(self,'我是fadeOut里面的self')
+            // console.log(this,'我是fadeOut里面的this')
+           self.$toast.remove();
+         });
+      }, self.dismissTime);//dismissTime后消失
+    });
+
+  }
+};
+
+function Toast(msg,time){
+  return new toast(msg, time);
+}
+
+window.Toast=Toast
+// console.log(Toast(),'我是Toast')
+
+module.exports.Toast = Toast;
+//不能module.exports= Toast; 因为左边的module.exports是一个对象，而右边的Toast是一个函数，如果Toast是一个对象那就可以赋值
+
+
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
+
+/***/ }),
 /* 5 */
+/***/ (function(module, exports, __webpack_require__) {
+
+/* WEBPACK VAR INJECTION */(function($) {var Toast = __webpack_require__(4).Toast;
+var Note = __webpack_require__(13).Note;
+// var Toast = require('./toast.js').Toast;
+var Event = __webpack_require__(1);
+
+
+var NoteManager = (function(){
+
+  function load() {//页面刚进来需要向服务器发请求去得到所有数据，然后加载所有数据渲染让用户看到
+    $.get('/api/notes')
+      .done(function(ret){
+        if(ret.status == 0){
+            console.log($.each)
+          $.each(ret.data, function(idx, article) {
+            //   $.each()函数和 $(selector).each()是不一样的，那个是专门用来遍历一个jQuery对象。$.each()函数可用于迭代任何集合，无论是“名/值”对象（JavaScript对象）或数组。在迭代数组的情况下，回调函数每次传递一个数组索引和相应的数组值作为参数。（该值也可以通过访问this关键字得到，但是JavaScript将始终将this值作为一个Object ，即使它是一个简单的字符串或数字值。）该方法返回其第一个参数，这是迭代的对象
+            // https://www.jquery123.com/jQuery.each/
+            // 也就是遍历第一个参数ret.data
+              new Note({
+                id: article.id,
+                context: article.text,
+                username: article.username
+              });
+          });
+
+          Event.fire('waterfall');
+        }else{
+          Toast(ret.errorMsg);
+        }
+      })
+      .fail(function(){
+        Toast('网络异常');
+      });
+
+
+  }
+
+  function add(){//这个add和node.js里面的add有什么区别？
+    new Note();
+  }
+
+  return {
+    load: load,//加载所有数据
+    add: add
+  }
+
+})();
+
+module.exports.NoteManager = NoteManager
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
+
+/***/ }),
+/* 6 */
+/***/ (function(module, exports, __webpack_require__) {
+
+/* WEBPACK VAR INJECTION */(function($) {
+var WaterFall = (function(){
+    var $ct;
+    var $items;
+  
+    function render($c){
+      $ct = $c;
+      $items = $ct.children();// 直接子元素,如果是孙元素就不行了。孙元素要用find(),https://www.runoob.com/jquery/jquery-traversing-descendants.html
+      // console.log($ct)
+      // console.log($items)
+  
+      var nodeWidth = $items.outerWidth(true);//外部宽度 包括了margin https://www.runoob.com/jquery/html-outerwidth.html
+      // console.log(nodeWidth,'nodeWidth')
+        colNum = parseInt($(window).width()/nodeWidth),//parseInt是会省略掉小数点后面的值，比如3.5只会得到3.window的宽度除以标签的宽度colNum就是一行可以放几个
+        // console.log($(window).width(),'$(window).width()')
+        // console.log(colNum)
+        colSumHeight = [];//一个数组，作用是为了下面的检查出总的行高
+  
+      for(var i = 0; i<colNum;i++){
+        colSumHeight.push(0);//列数有几个就会push几个0到数组里面去，但是返回的是长度，本身数组是有多个0组成的数组。
+        // console.log(colSumHeight.length,'colSumHeight.length')
+        // console.log(colNum,'colNum')
+        // console.log(colSumHeight.length/colNum,'colSumHeight.length/colNum')
+      }
+      // console.log(colSumHeight)
+  
+      $items.each(function(){//each() 方法为每个匹配元素规定要运行的函数。 https://www.runoob.com/jquery/traversing-each.html
+        // console.log(x,'x')
+        // console.log(this,'this')
+        var $cur = $(this);//所有子元素赋值给$cur,this就是匹配的当前元素。
+  
+        //colSumHeight = [100, 250, 80, 200]
+  
+        var idx = 0,
+          minSumHeight = colSumHeight[0];//默认第一个
+          // console.log(minSumHeight,'minSumHeight')
+
+        for(var i=0;i<colSumHeight.length; i++){//这里是某一行的元素的进行循环，比如一共有5个元素，但是第一行只有4个元素，那么就先循环第一行的4个元素，然后跳出该循环进行后面的代码，然后第5个元素在进行该循环，然后再进行后面代码的执行，这里要跟第52行代码结合起来看，
+          // 是为了找出一行中距离顶部的最小值
+          // console.log(colSumHeight[i],`if外部colSumHeight[${i}]`)
+          if(colSumHeight[i] < minSumHeight){
+            // console.log(colSumHeight[i],`if内部colSumHeight[${i}]`)// 第52的代码会影响这里的数值
+            idx = i;
+            minSumHeight = colSumHeight[i];//一行中找出距离顶部的最小高度给50行代码使用
+          }
+        }
+        // console.log(minSumHeight,'minSumHeight')
+  
+        $cur.css({
+          left: nodeWidth*idx,//距离左边是一个标签的高度加上第几个
+          top: minSumHeight//用前面for循环找出一行中的距离顶部的最小高度
+        });
+        //把前面找出的距离顶部的最小值的高度修改为元素自己的高度如果是第二行就是元素自己的高度加上第一行的高度，这句话的代码的意思是为了让自己不成为最小值。并且为后续的元素的高度保持一个高度。
+        colSumHeight[idx] = $cur.outerHeight(true) + colSumHeight[idx];
+        // console.log(colSumHeight[idx],`colSumHeight[${idx}]`)
+      });
+    }
+
+    
+    $(window).on('resize', function(){//当改变窗口大小的时候重新执行render函数，也就是重新进行瀑布流布局
+      render($ct);
+    })
+  
+  
+    return {
+      init: render
+    }
+  })();
+  
+  module.exports = WaterFall//因为modules.export是对象，WaterFall也是一个对象，所以可以赋值。
+  
+  
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
+
+/***/ }),
+/* 7 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// Imports
+var ___CSS_LOADER_API_IMPORT___ = __webpack_require__(2);
+exports = ___CSS_LOADER_API_IMPORT___(false);
+// Module
+exports.push([module.i, ".note {\n  position: absolute;\n  color: #333;\n  width: 160px;\n  margin: 20px 10px;\n  transition: all 0.5s;\n}\n.note .note-head {\n  height: 20px;\n  background-color: #ea9b35;\n  cursor: move;\n  font-size: 12px;\n  line-height: 20px;\n  padding-left: 10px;\n  color: #666;\n}\n.note .note-head:hover .delete {\n  opacity: 1;\n}\n.note .note-head:before {\n  position: absolute;\n  left: 50%;\n  top: -11px;\n  margin-left: -32px;\n  content: ' ';\n  display: block;\n  width: 64px;\n  height: 18px;\n  background: #35bba3;\n}\n.note .note-head:after {\n  position: absolute;\n  left: 50%;\n  margin-left: 32px;\n  top: -11px;\n  z-index: -1;\n  content: '';\n  display: block;\n  width: 0;\n  height: 0;\n  border-left: 5px solid #299683;\n  border-top: 18px solid transparent;\n}\n.note .note-ct {\n  padding: 10px;\n  background-color: #efb04e;\n  outline: none;\n}\n.note .delete {\n  position: absolute;\n  top: 4px;\n  right: 4px;\n  font-size: 12px;\n  color: #fff;\n  cursor: pointer;\n  opacity: 0;\n  transition: opacity 0.3s;\n}\n.draggable {\n  opacity: 0.8;\n  cursor: move;\n  transition: none;\n}\n", ""]);
+// Exports
+module.exports = exports;
+
+
+/***/ }),
+/* 8 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// Imports
+var ___CSS_LOADER_API_IMPORT___ = __webpack_require__(2);
+exports = ___CSS_LOADER_API_IMPORT___(false);
+// Module
+exports.push([module.i, ".toast {\n  position: fixed;\n  left: 50%;\n  transform: translateX(-50%);\n  bottom: 20px;\n  color: #D15A39;\n  background: #fff;\n  padding: 5px 10px;\n  border-radius: 3px;\n  box-shadow: 0px 0px 3px 1px rgba(0, 0, 0, 0.6);\n  display: none;\n}\n", ""]);
+// Exports
+module.exports = exports;
+
+
+/***/ }),
+/* 9 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var api = __webpack_require__(3);
+            var content = __webpack_require__(7);
+
+            content = content.__esModule ? content.default : content;
+
+            if (typeof content === 'string') {
+              content = [[module.i, content, '']];
+            }
+
+var options = {};
+
+options.insert = "head";
+options.singleton = false;
+
+var update = api(content, options);
+
+
+
+module.exports = content.locals || {};
+
+/***/ }),
+/* 10 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var api = __webpack_require__(3);
+            var content = __webpack_require__(8);
+
+            content = content.__esModule ? content.default : content;
+
+            if (typeof content === 'string') {
+              content = [[module.i, content, '']];
+            }
+
+var options = {};
+
+options.insert = "head";
+options.singleton = false;
+
+var update = api(content, options);
+
+
+
+module.exports = content.locals || {};
+
+/***/ }),
+/* 11 */
+/***/ (function(module, exports) {
+
+/* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {/* globals __webpack_amd_options__ */
+module.exports = __webpack_amd_options__;
+
+/* WEBPACK VAR INJECTION */}.call(exports, {}))
+
+/***/ }),
+/* 12 */
+/***/ (function(module, exports) {
+
+module.exports = function(module) {
+	if(!module.webpackPolyfill) {
+		module.deprecate = function() {};
+		module.paths = [];
+		// module.parent = undefined by default
+		if(!module.children) module.children = [];
+		Object.defineProperty(module, "loaded", {
+			enumerable: true,
+			get: function() {
+				return module.l;
+			}
+		});
+		Object.defineProperty(module, "id", {
+			enumerable: true,
+			get: function() {
+				return module.i;
+			}
+		});
+		module.webpackPolyfill = 1;
+	}
+	return module;
+};
+
+
+/***/ }),
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function($) {__webpack_require__(9);
 
-var Toast = __webpack_require__(2).Toast;//有一些需要发网络请求，不管成功与否就可以通过Toast给页面展示提示。
+var Toast = __webpack_require__(4).Toast;//有一些需要发网络请求，不管成功与否就可以通过Toast给页面展示提示。
 var Event = __webpack_require__(1);//主要用到绑定事件和触发事件用，类似发布订阅模式。通过调用别的事件函数，这里就是瀑布流事件waterfall.js，在index.js里面
 // 如果把toast.js也变成一个立即执行函数并返回一个对象，那么也可以通过Event来绑定和触发该toast事件。
-console.log(Event)
+// console.log(Event)
 
 //对于一个note需要大致如下几个参数：
 // 1——id，用于辨别很多便利贴中的哪一个便利贴。
@@ -654,7 +897,7 @@ Note.prototype = {
   },
 
   bindEvent: function () {//绑定事件
-    console.log(this,'this')
+    // console.log(this,'this')
     var self = this,
         $note = this.$note,
         $noteHead = $note.find('.note-head'),
@@ -672,7 +915,7 @@ Note.prototype = {
       // https://www.jquery123.com/data/
       //这里就是把元素$noteCt里面设置一个临时key是before，它的值是$noteCt.html()
       // .html()获取集合中第一个匹配元素的HTML内容，https://www.jquery123.com/html/
-      console.log($noteCt.data('before'),'$noteCt.data(before)')
+      // console.log($noteCt.data('before'),'$noteCt.data(before)')
     }).on('blur paste', function() {//当失去焦点(也就是输入完成后离开输入框)或者粘贴的是时候触发
       // console.log('失去焦点或者粘贴')
       if( $noteCt.data('before') != $noteCt.html() ) {//如果before这个临时key里面的值不等于$noteCt.html()那就按照下面的代码把这个before临时key设置为$noteCt.html()
@@ -693,8 +936,8 @@ Note.prototype = {
       //.offset()在匹配的元素集合中，获取的第一个元素的当前坐标，或设置每一个元素的坐标，坐标相对于文档,.offset()返回一个包含top 和 left属性的对象 。
       //https://www.jquery123.com/offset/
           evtY = e.pageY - $note.offset().top;//evtY 计算事件的触发点在 dialog内部到 dialog 的顶部边缘的距离
-          console.log(e.pageY,'e,pageY')
-          console.log($note.offset().top,'$note.offset().top')
+          // console.log(e.pageY,'e,pageY')
+          // console.log($note.offset().top,'$note.offset().top')
       $note.addClass('draggable').data('evtPos', {x:evtX, y:evtY}); //把事件到 dialog 前面左边和顶部边缘的距离保存下来，保存的key为evtPos,在拖动的过程中增加一个class 为draggable，为了拖动的时候有一个特效，这里就是颜色变浅，也就是透明度变大
       // console.log($('.draggable').data('evtPos'),'$(.draggable).data(evtPos)')
       // console.log($('.draggable').data('pos'),'$(.draggable).data(pos)')
@@ -799,218 +1042,36 @@ module.exports.Note = Note;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 6 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
-/* WEBPACK VAR INJECTION */(function($) {
-var WaterFall = (function(){
-    var $ct;
-    var $items;
-  
-    function render($c){
-      $ct = $c;
-      $items = $ct.children();// 直接子元素,如果是孙元素就不行了。孙元素要用find(),https://www.runoob.com/jquery/jquery-traversing-descendants.html
-      // console.log($ct)
-      // console.log($items)
-  
-      var nodeWidth = $items.outerWidth(true);//外部宽度 包括了margin https://www.runoob.com/jquery/html-outerwidth.html
-      // console.log(nodeWidth,'nodeWidth')
-        colNum = parseInt($(window).width()/nodeWidth),//parseInt是会省略掉小数点后面的值，比如3.5只会得到3.window的宽度除以标签的宽度colNum就是一行可以放几个
-        // console.log($(window).width(),'$(window).width()')
-        // console.log(colNum)
-        colSumHeight = [];//一个数组，作用是为了下面的检查出总的行高
-  
-      for(var i = 0; i<colNum;i++){
-        colSumHeight.push(0);//列数有几个就会push几个0到数组里面去，但是返回的是长度，本身数组是有多个0组成的数组。
-        // console.log(colSumHeight.length,'colSumHeight.length')
-        // console.log(colNum,'colNum')
-        // console.log(colSumHeight.length/colNum,'colSumHeight.length/colNum')
-      }
-      // console.log(colSumHeight)
-  
-      $items.each(function(){//each() 方法为每个匹配元素规定要运行的函数。 https://www.runoob.com/jquery/traversing-each.html
-        // console.log(x,'x')
-        // console.log(this,'this')
-        var $cur = $(this);//所有子元素赋值给$cur,this就是匹配的当前元素。
-  
-        //colSumHeight = [100, 250, 80, 200]
-  
-        var idx = 0,
-          minSumHeight = colSumHeight[0];//默认第一个
-          // console.log(minSumHeight,'minSumHeight')
-
-        for(var i=0;i<colSumHeight.length; i++){//这里是某一行的元素的进行循环，比如一共有5个元素，但是第一行只有4个元素，那么就先循环第一行的4个元素，然后跳出该循环进行后面的代码，然后第5个元素在进行该循环，然后再进行后面代码的执行，这里要跟第52行代码结合起来看，
-          // 是为了找出一行中距离顶部的最小值
-          // console.log(colSumHeight[i],`if外部colSumHeight[${i}]`)
-          if(colSumHeight[i] < minSumHeight){
-            // console.log(colSumHeight[i],`if内部colSumHeight[${i}]`)// 第52的代码会影响这里的数值
-            idx = i;
-            minSumHeight = colSumHeight[i];//一行中找出距离顶部的最小高度给50行代码使用
-          }
-        }
-        // console.log(minSumHeight,'minSumHeight')
-  
-        $cur.css({
-          left: nodeWidth*idx,//距离左边是一个标签的高度加上第几个
-          top: minSumHeight//用前面for循环找出一行中的距离顶部的最小高度
-        });
-        //把前面找出的距离顶部的最小值的高度修改为元素自己的高度如果是第二行就是元素自己的高度加上第一行的高度，这句话的代码的意思是为了让自己不成为最小值。并且为后续的元素的高度保持一个高度。
-        colSumHeight[idx] = $cur.outerHeight(true) + colSumHeight[idx];
-        // console.log(colSumHeight[idx],`colSumHeight[${idx}]`)
-      });
-    }
-
-    
-    $(window).on('resize', function(){//当改变窗口大小的时候重新执行render函数，也就是重新进行瀑布流布局
-      render($ct);
-    })
-  
-  
-    return {
-      init: render
-    }
-  })();
-  
-  module.exports = WaterFall//因为modules.export是对象，WaterFall也是一个对象，所以可以赋值。
-  
-  
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
-
-/***/ }),
-/* 7 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// Imports
-var ___CSS_LOADER_API_IMPORT___ = __webpack_require__(3);
-exports = ___CSS_LOADER_API_IMPORT___(false);
-// Module
-exports.push([module.i, ".note {\n  position: absolute;\n  color: #333;\n  width: 160px;\n  margin: 20px 10px;\n  transition: all 0.5s;\n}\n.note .note-head {\n  height: 20px;\n  background-color: #ea9b35;\n  cursor: move;\n  font-size: 12px;\n  line-height: 20px;\n  padding-left: 10px;\n  color: #666;\n}\n.note .note-head:hover .delete {\n  opacity: 1;\n}\n.note .note-head:before {\n  position: absolute;\n  left: 50%;\n  top: -11px;\n  margin-left: -32px;\n  content: ' ';\n  display: block;\n  width: 64px;\n  height: 18px;\n  background: #35bba3;\n}\n.note .note-head:after {\n  position: absolute;\n  left: 50%;\n  margin-left: 32px;\n  top: -11px;\n  z-index: -1;\n  content: '';\n  display: block;\n  width: 0;\n  height: 0;\n  border-left: 5px solid #299683;\n  border-top: 18px solid transparent;\n}\n.note .note-ct {\n  padding: 10px;\n  background-color: #efb04e;\n  outline: none;\n}\n.note .delete {\n  position: absolute;\n  top: 4px;\n  right: 4px;\n  font-size: 12px;\n  color: #fff;\n  cursor: pointer;\n  opacity: 0;\n  transition: opacity 0.3s;\n}\n.draggable {\n  opacity: 0.8;\n  cursor: move;\n  transition: none;\n}\n", ""]);
-// Exports
-module.exports = exports;
-
-
-/***/ }),
-/* 8 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// Imports
-var ___CSS_LOADER_API_IMPORT___ = __webpack_require__(3);
-exports = ___CSS_LOADER_API_IMPORT___(false);
-// Module
-exports.push([module.i, ".toast {\n  position: fixed;\n  left: 50%;\n  transform: translateX(-50%);\n  bottom: 20px;\n  color: #D15A39;\n  background: #fff;\n  padding: 5px 10px;\n  border-radius: 3px;\n  box-shadow: 0px 0px 3px 1px rgba(0, 0, 0, 0.6);\n  display: none;\n}\n", ""]);
-// Exports
-module.exports = exports;
-
-
-/***/ }),
-/* 9 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var api = __webpack_require__(4);
-            var content = __webpack_require__(7);
-
-            content = content.__esModule ? content.default : content;
-
-            if (typeof content === 'string') {
-              content = [[module.i, content, '']];
-            }
-
-var options = {};
-
-options.insert = "head";
-options.singleton = false;
-
-var update = api(content, options);
-
-
-
-module.exports = content.locals || {};
-
-/***/ }),
-/* 10 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var api = __webpack_require__(4);
-            var content = __webpack_require__(8);
-
-            content = content.__esModule ? content.default : content;
-
-            if (typeof content === 'string') {
-              content = [[module.i, content, '']];
-            }
-
-var options = {};
-
-options.insert = "head";
-options.singleton = false;
-
-var update = api(content, options);
-
-
-
-module.exports = content.locals || {};
-
-/***/ }),
-/* 11 */
-/***/ (function(module, exports) {
-
-/* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {/* globals __webpack_amd_options__ */
-module.exports = __webpack_amd_options__;
-
-/* WEBPACK VAR INJECTION */}.call(exports, {}))
-
-/***/ }),
-/* 12 */
-/***/ (function(module, exports) {
-
-module.exports = function(module) {
-	if(!module.webpackPolyfill) {
-		module.deprecate = function() {};
-		module.paths = [];
-		// module.parent = undefined by default
-		if(!module.children) module.children = [];
-		Object.defineProperty(module, "loaded", {
-			enumerable: true,
-			get: function() {
-				return module.l;
-			}
-		});
-		Object.defineProperty(module, "id", {
-			enumerable: true,
-			get: function() {
-				return module.i;
-			}
-		});
-		module.webpackPolyfill = 1;
-	}
-	return module;
-};
-
-
-/***/ }),
-/* 13 */
-/***/ (function(module, exports, __webpack_require__) {
-
-/* WEBPACK VAR INJECTION */(function($) {var Toast=__webpack_require__(2).Toast//因为require()返回的是module.exports对象，但是我们需要里面的Toast属性
+/* WEBPACK VAR INJECTION */(function($) {// var Toast=require('../mod/toast.js').Toast//因为require()返回的是module.exports对象，但是我们需要里面的Toast属性
 var Event=__webpack_require__(1)
 var WaterFall=__webpack_require__(6)
-var Note=__webpack_require__(5).Note
+// var Note=require('../mod/note').Note
+var NoteManager = __webpack_require__(5).NoteManager;
 
-Toast('hello world')
+// Toast('hello world')
 
-var a=new Note({
-    id: '',
-    // context: 'article.text',
-    username: 'article.username'
-  });
+NoteManager.load();
 
-  console.log(a)
+// var a=new Note({
+//     id: '',
+//     // context: 'article.text',
+//     username: 'article.username'
+//   });
 
-  Event.on('waterfall', function(){
-    WaterFall.init($('#content'));
-  })//这里绑定之后，还需要下面的触发fire
+  // console.log(a)
 
-  Event.fire('waterfall')//fire触发
+$('.add-note').on('click', function() {//首页点击添加按钮的时候执行add函数
+  NoteManager.add();
+})
+
+Event.on('waterfall', function(){
+  WaterFall.init($('#content'));
+})//这里绑定之后，还需要下面的触发fire
+
+Event.fire('waterfall')//fire触发
 
 
 

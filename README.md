@@ -1512,6 +1512,90 @@ var a=new Note({
     * [jQuery.post（）](https://api.jquery.com/jQuery.post/#jQuery-post-url-data-success-dataType)使用HTTP POST请求从服务器加载数据。[另一个文档说明jQuery.post（）](https://jquery.cuishifeng.cn/jQuery.post.html)
     * [deferred.done](https://api.jquery.com/deferred.done/#deferred-done-doneCallbacks-doneCallbacks)当延迟成功时调用一个函数或者数组函数.比如一旦jQuery.get方法返回一个来自延迟的对象的jqXHR对象，我们可以附加一个成功回调使用.done方法。[另一个解释deferred.done](https://jquery.cuishifeng.cn/deferred.done.html)
     * [remove()](https://jquery.cuishifeng.cn/remove.html)从DOM中删除所有匹配的元素。 
+### 刚开始进入页面的时候创建所有已经有的便利贴node组件note-manager.js
+* 代码为
+```js
+var Toast = require('./toast.js').Toast;
+var Note = require('./note.js').Note;
+// var Toast = require('./toast.js').Toast;
+var Event = require('mod/event.js');
+
+
+var NoteManager = (function(){
+
+  function load() {
+    $.get('/api/notes')
+      .done(function(ret){
+        if(ret.status == 0){
+            console.log($.each)
+          $.each(ret.data, function(idx, article) {
+            //   $.each()函数和 $(selector).each()是不一样的，那个是专门用来遍历一个jQuery对象。$.each()函数可用于迭代任何集合，无论是“名/值”对象（JavaScript对象）或数组。在迭代数组的情况下，回调函数每次传递一个数组索引和相应的数组值作为参数。（该值也可以通过访问this关键字得到，但是JavaScript将始终将this值作为一个Object ，即使它是一个简单的字符串或数字值。）该方法返回其第一个参数，这是迭代的对象
+            // https://www.jquery123.com/jQuery.each/
+            // 也就是遍历第一个参数ret.data
+              new Note({
+                id: article.id,
+                context: article.text,
+                username: article.username
+              });
+          });
+
+          Event.fire('waterfall');
+        }else{
+          Toast(ret.errorMsg);
+        }
+      })
+      .fail(function(){
+        Toast('网络异常');
+      });
+
+
+  }
+
+  function add(){
+    new Note();
+  }
+
+  return {
+    load: load,
+    add: add
+  }
+
+})();
+
+module.exports.NoteManager = NoteManager
+```
+* 主要是用到`$.each()`,[$.each()](https://www.jquery123.com/jQuery.each/)函数和 $(selector).each()是不一样的，那个是专门用来遍历一个jQuery对象。$.each()函数可用于迭代任何集合，无论是“名/值”对象（JavaScript对象）或数组。在迭代数组的情况下，回调函数每次传递一个数组索引和相应的数组值作为参数。（该值也可以通过访问this关键字得到，但是JavaScript将始终将this值作为一个Object ，即使它是一个简单的字符串或数字值。）该方法返回其第一个参数，这是迭代的对象,也就是遍历第一个参数ret.data
+```js
+      $.each(ret.data, function(idx, article) {
+        //   $.each()函数和 $(selector).each()是不一样的，那个是专门用来遍历一个jQuery对象。$.each()函数可用于迭代任何集合，无论是“名/值”对象（JavaScript对象）或数组。在迭代数组的情况下，回调函数每次传递一个数组索引和相应的数组值作为参数。（该值也可以通过访问this关键字得到，但是JavaScript将始终将this值作为一个Object ，即使它是一个简单的字符串或数字值。）该方法返回其第一个参数，这是迭代的对象
+        // https://www.jquery123.com/jQuery.each/
+        // 也就是遍历第一个参数ret.data
+```
+* 这里的add和前面的node.js里面的add有什么区别需要最后再测试一下
+```js
+  function add(){//这个add和node.js里面的add有什么区别？
+    new Note();
+  }
+```
+* 最后首页app目录下的index.js里面代码为
+```js
+var Event=require('../mod/event.js')
+var WaterFall=require('../mod/waterfall')
+var NoteManager = require('mod/note-manager.js').NoteManager;
+// NoteMangeer里面已经引入了note组件
+
+NoteManager.load();
+
+$('.add-note').on('click', function() {//首页点击添加按钮的时候执行add函数
+  NoteManager.add();
+})
+
+Event.on('waterfall', function(){
+  WaterFall.init($('#content'));
+})//这里绑定之后，还需要下面的触发fire
+
+Event.fire('waterfall')//fire触发
+```
 ## 其他
 ### 小技巧安装nrm切换源
 * [npr文档](https://www.npmjs.com/package/nrm)
