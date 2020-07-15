@@ -22,7 +22,7 @@ var WaterFall = (function(){
         // console.log(colNum,'colNum')
         // console.log(colSumHeight.length/colNum,'colSumHeight.length/colNum')
       }
-      console.log(colSumHeight)
+      // console.log(colSumHeight)
   
       $items.each(function(){//each() 方法为每个匹配元素规定要运行的函数。 https://www.runoob.com/jquery/traversing-each.html
         // console.log(x,'x')
@@ -44,7 +44,7 @@ var WaterFall = (function(){
             minSumHeight = colSumHeight[i];//一行中找出距离顶部的最小高度给50行代码使用
           }
         }
-        console.log(minSumHeight,'minSumHeight')
+        // console.log(minSumHeight,'minSumHeight')
   
         $cur.css({
           left: nodeWidth*idx,//距离左边是一个标签的高度加上第几个
@@ -55,8 +55,8 @@ var WaterFall = (function(){
         // console.log(colSumHeight[idx],`colSumHeight[${idx}]`)
       });
     }
-  
-  
+
+    
     $(window).on('resize', function(){//当改变窗口大小的时候重新执行render函数，也就是重新进行瀑布流布局
       render($ct);
     })
