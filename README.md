@@ -500,6 +500,7 @@ app.use('/stylesheets/style.css',function(req,res,next){
 * 因为前面没有设置静态文件资源，那么下面`/stylesheets/style.css`就会被执行,并且输入这个路由的时候会显示`get style.css....`，并且在node上面会打印出`get style.css....`。
 * 所以这里我们也可以知道路由里面不需要看文件的后缀，比如`style.css`，这里面的后缀css只是路由的名字而已,你可以写成`style.html`或者任何奇怪的名字，**它只是一个字符串名字而已**。
 ## webpack配置
+* 一个webpack能抵得上一个gulp和require.js
 * 一般的后端都是增删改查。叫做[增删改查(curd)](https://www.cnblogs.com/jyue/p/10481317.html):
   * curd的解释: 代表创建（Create）、更新（Update）、读取（Retrieve）和删除（Delete）
 * 后台还可以加一些普通的权限管理，比如登陆，管理员额外去管理和操作某些页面。
@@ -1571,7 +1572,7 @@ module.exports.NoteManager = NoteManager
         // https://www.jquery123.com/jQuery.each/
         // 也就是遍历第一个参数ret.data
 ```
-* 这里的add和前面的node.js里面的add有什么区别需要最后再测试一下
+* **这里的add和前面的note.js里面的add有什么区别**
 ```js
   function add(){//这个add和node.js里面的add有什么区别？
     new Note();
@@ -1595,6 +1596,356 @@ Event.on('waterfall', function(){
 })//这里绑定之后，还需要下面的触发fire
 
 Event.fire('waterfall')//fire触发
+```
+* 经过测试add和前面的note.js里面的add有什么区别:
+  * note.js里面的代码和note-manager.js里面的代码发请求的路由不一样。note-manager.js是`/api/notes`,note.j是`/api/notes/add`.
+  * note.js里面的代码add后只是有一个toast弹出提醒，他们都会new note()
+  * 在note.js中只有这里blur或者paste的时候，并且self.id不存在的时候才会调用add函数。
+```js
+$('.add-note').on('click', function() {//首页点击添加按钮的时候执行add函数
+  // NoteManager.add();//这里的路由是/api/notes，它是没有参数，就是类似于直接new Note();
+  new Note(    {
+    id: 1,   
+  context: 'i1' 
+}).add()//这里的路由是/api/notes/add
+})
+
+//只有这里blur或者paste的时候，并且self.id不存在的时候才会调用add函数。
+    $noteCt.on('focus', function() {//聚焦的时候触发
+      if($noteCt.html()=='input here') $noteCt.html('');//前面设置的默认内容是input here，如果内容是默认的input here就在聚焦的时候清空内容
+      $noteCt.data('before', $noteCt.html());//jQuery.data()函数在匹配元素上存储任意相关数据 或 返回匹配的元素集合中的第一个元素的给定名称的数据存储的值。
+      // https://www.jquery123.com/data/
+      //这里就是把元素$noteCt里面设置一个临时key是before，它的值是$noteCt.html()
+      // .html()获取集合中第一个匹配元素的HTML内容，https://www.jquery123.com/html/
+      // console.log($noteCt.data('before'),'$noteCt.data(before)')
+    }).on('blur paste', function() {//当失去焦点(也就是输入完成后离开输入框)或者粘贴的是时候触发
+      // console.log('失去焦点或者粘贴')
+      if( $noteCt.data('before') != $noteCt.html() ) {//如果before这个临时key里面的值不等于$noteCt.html()那就按照下面的代码把这个before临时key设置为$noteCt.html()
+        $noteCt.data('before',$noteCt.html());//把临时before这个key设置为$noteCt.html()
+        self.setLayout();//触发瀑布流事件效果
+        if(self.id){//如果存在id就是执行编辑事件
+          self.edit($noteCt.html())
+        }else{//不存在id就执行增加事件
+          self.add($noteCt.html())
+        }
+      }
+    });
+```
+## 后台接口
+* 在views里面创建模板index.ejs,这里用的ejs模板引擎。**index.ejs文件不可以用HTML或者js的注释**。
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <!-- <meta property="qc:admins" content="4562636714562571563145" /> -->
+    <title>便利贴</title>
+    <link rel="stylesheet" href="/css/index.css">
+  </head>
+  <body>
+    <div id="header">
+      <a class="add-note" title="添加笔记" href="#"><span class="fa fa-plus"></span> 添加</a>
+      <ul class="user-area">
+
+          <li><a class="login" title="GitHub登录" href="/auth/github"> GitHub登录</a>
+          </li>
+          <li><a class="login" title="饥人谷登录" href="/auth/jirengu"> 饥人谷登录</a>
+          </li>
+      </ul>
+
+    </div>
+    <div id="content">
+
+    </div>
+
+    <div class="stars"></div>
+    <script src="/js/index.js"></script>
+<!--     <div class="twinkling"></div> -->
+  </body>
+</html>
+```
+* 跟普通的HTML有不同的地方就会有数据的使用，是把数据和模板结合起来的。
+* 代码
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta property="qc:admins" content="4562636714562571563145" />
+    <title>便利贴</title>
+    <link rel="stylesheet" href="/css/index.css">
+  </head>
+  <body>
+    <div id="header">
+      <a class="add-note" title="添加笔记" href="#"><span class="fa fa-plus"></span> 添加</a>
+      <ul class="user-area">
+       <% if (isLogin){ %>
+          <li><img src="<%= user.avatar %>" alt=""></li>
+          <li><span title="<%= user.username %>"><%= user.username %></span></li>
+          <li><span class="line"> | </span> </li>
+          <li><a class="logout" href="/auth/logout">注销</a></li>
+        <%} else { %>
+          <li><a class="login" title="GitHub登录" href="/auth/github"> GitHub登录</a>
+          </li>
+        <% } %>
+      </ul>
+
+    </div>
+    <div id="content">
+
+    </div>
+
+    <div class="stars"></div>
+    <script src="/js/index.js"></script>
+<!--     <div class="twinkling"></div> -->
+  </body>
+</html>
+```
+* 主要看这段代码就是如果登陆了就展示什么内容，类似js的方法,实际就是用户如何登陆如何展示的这样一个逻辑。
+```html
+      <ul class="user-area">
+       <% if (isLogin){ %>
+       <!-- 如果登陆就展示下面信息，类似js的方法 -->
+          <li><img src="<%= user.avatar %>" alt=""></li>
+          <!-- 这里面有=符号，就相当于去获取一个值，然后替换这个值 -->
+          <li><span title="<%= user.username %>"><%= user.username %></span></li>
+          <li><span class="line"> | </span> </li>
+          <li><a class="logout" href="/auth/logout">注销</a></li>
+        <%} else { %>//否则展示下面信息
+          <li><a class="login" title="GitHub登录" href="/auth/github"> GitHub登录</a>
+          </li>
+        <% } %>
+      </ul>
+```
+* 这里主页的样式增加在less目录下面的index.less里面。**这里面的背景图片已经不能使用了**
+```less
+/* 这里的背景图片已经没有了 */
+  .stars {
+    background:#000 url(http://7xpvnv.com2.z0.glb.qiniucdn.com/ba25c630-1c91-4ac1-a3de-65555d78c147.png) repeat top center;
+    z-index:-2;
+  }
+  /* 这里的背景图片已经没有了 */
+  .twinkling{
+    background:transparent url(http://7xpvnv.com2.z0.glb.qiniucdn.com/493b97e6-c499-4b41-a26b-8942873615b0.png) repeat top center;
+    z-index:-1;
+    animation:move-twink-back 200s linear infinite;
+  }
+```
+* 我另外上传了别的背景图片
+```less
+  .stars {//修改为别的背景图片
+    background:#000 url(https://s1.ax1x.com/2020/07/17/UyUuFO.png) repeat top center;
+    z-index:-2;
+  }
+```
+* 样式稍微修改增加了上面按钮的背景颜色，后面的按钮样式也可以修改下，**因为不居中**
+```less
+  #header {
+    height: 30px;
+    font-size: 12px;
+    background:#323846;//背景颜色
+  }
+```
+### 增加后台接口的请求对应的响应和路由
+* 路径可以随意定，但是为了规范及保持统一就按照下面的格式写。
+* 所有的AJAX请求以api开头，所有的页面请求不以api开头
+* 接口：
+  * AJAX请求（[curd增删改查](https://baike.baidu.com/item/CURD/3031761?fr=aladdin)，或者叫做[restful 架构风格的curd（增删改查）](https://www.cnblogs.com/duguangming/p/11047839.html)）
+    1. 获取所有的note：GET方法。路径`/api/notes`.
+        * 后台响应一般就是成功或者失败，然后传回对应的参数`res:{status:0，data:[{},{}]}`代表成功，如果是0以外的值，比如1，2，3等就是失败的。只不过失败的原因不同。另一个参数就是数据data，是一个数组，里面有不同的数据，每一个数据就是一个note。如果失败的了参数比如`{status:1,errorMsg:'失败的原因'}`
+        * 所以如果status为0就可以把data获取到。如果status为1，就可以知道失败的原因(errorMsg)。
+    2. 创建一个note,创建需要一个参数，那么后面的就是参数: 内容比较多，如果用get方法会拼接成url，可能放不下，而且安全性不好，所以这里用POST方法。路径`/api/notes/add`，参数`req:{note:'hello world'}`
+        * 后台响应，如果成功就是`{status:0}`,失败了就是`{status:1或者2或者3，不是0都可以,errorMsg:'失败的原因'}`
+    3. 修改一个note,POST方法(原因跟上面的一样)，路径`/api/notes/edit`,也需要传递参数`req:{note:'new note',id:100}`,需要传递id，因为要告诉后台你修改的是哪一个note。
+        * 后台响应跟前面的类似
+    4. 删除一个note.POST方法(原因跟上面一样)，路径`/api/notes/delete`,传递的参数`req:{id:100}`，只需要知道是删除哪一个note就可以，所以只需要一个id参数。
+        * 后台响应跟前面的类似
+  * 页面请求
+    1. 我的页面，路径不用api,就是`/user`，这不是AJAX请求。
+* **前面的这些就是你作为一个前端开发工程师，跟后台去约定接口，这一步需要与后台讨论，当然也可以后台定下来告诉前端。或者前端工程师定下来告诉后台。但是双方需要相互知晓。要知道调用什么接口，发什么接口对应的路径，发送的数据和响应的数据，对于后台来说每一条api和路由对应的都是后台的一个功能。**
+* **作为后台工程师如何去实现前面的功能： 前面的功能主要对应的就是路由。主要就是去修改app.js里面的路由**。
+### 修改app.js里面的路由配置
+* 为了不让app.js里面的路由导致app.js文件越来越大，就可以把第二级目录做成一个组件或者文件对应的函数处理。
+```js
+app.use('/api',api)//如果路由以api开头就交由api对应的组件或者文件对应的函数去处理
+```
+* 然后api对应的文件api.js的代码。
+```js
+var express = require('express');
+var router = express.Router();
+
+/* GET users listing. */
+router.get('/', function(req, res, next) {
+  res.send('respond with a resource');
+});
+
+module.exports = router;
+```
+* 对应的api路径就不用去修改app.js文件，只需要在这里修改即可
+```js
+var express = require('express');
+var router = express.Router();
+
+/* 前端发的请求都会到这里对应的路由去执行响应的函数 */
+/* 获取所有notes */
+router.get('/notes', function(req, res, next) {
+  console.log('/notes');
+});
+/* 创建note */
+router.post('/notes/add', function(req, res, next) {
+  res.send('respond with a resource');
+});
+/* 修改note */
+router.post('/notes/edit', function(req, res, next) {
+  res.send('respond with a resource');
+});
+/* 删除note */
+router.post('/notes/delete', function(req, res, next) {
+  res.send('respond with a resource');
+});
+
+module.exports = router;
+```
+### 测试前后端代码，前端发请求，对应的路由后端有响应
+* 这里我们做一个测试，**因为主页里面里面webpack启动的前端部分的app目录下index.js是入口**,有一段代码
+```js
+NoteManager.load();
+```
+* 而对应的文件note-manager.js代码里面有对应的路由是`/api/notes`
+```js
+  function load() {//页面刚进来需要向服务器发请求去得到所有数据，然后加载所有数据渲染让用户看到
+    $.get('/api/notes')
+      .done(function(ret){
+        if(ret.status == 0){
+            console.log($.each)
+          $.each(ret.data, function(idx, article) {
+            //   $.each()函数和 $(selector).each()是不一样的，那个是专门用来遍历一个jQuery对象。$.each()函数可用于迭代任何集合，无论是“名/值”对象（JavaScript对象）或数组。在迭代数组的情况下，回调函数每次传递一个数组索引和相应的数组值作为参数。（该值也可以通过访问this关键字得到，但是JavaScript将始终将this值作为一个Object ，即使它是一个简单的字符串或数字值。）该方法返回其第一个参数，这是迭代的对象
+            // https://www.jquery123.com/jQuery.each/
+            // 也就是遍历第一个参数ret.data
+              new Note({
+                id: article.id,
+                context: article.text,
+                username: article.username
+              });
+          });
+
+          Event.fire('waterfall');
+        }else{
+          Toast(ret.errorMsg);
+        }
+      })
+      .fail(function(){
+        Toast('网络异常');
+      });
+```
+* 前面的webpack启动的src目录里面的app.js是前端部分发请求的路由为`/api/notes`的请求
+* 然后就到了后端的routes目录里面的api.js里面的对应的`/api/notes`路由，代码为
+```js
+/* 获取所有notes */
+router.get('/notes', function(req, res, next) {//这里是二级路由，一级路由在最外面的app.js文件里面，组合起来就是/api/notes路由
+  console.log('/notes');
+});
+```
+* 于是就可以看到在node.js的控制台里面会打出下面的语句，说明测试成功了。
+```js
+/notes
+```
+### 后端使用前端的参数举例
+* 比如前端在src目录下面的mod里面的note.js里面的add函数,有一个参数note为1`$.post('/api/notes/add', {note: '1'})`
+```js
+  add: function (msg){
+    console.log('addd...');
+    var self = this;
+    $.post('/api/notes/add', {note: '1'})//新增的需要提供内容。如果成功下面只是弹出toast提醒你成功了
+      .done(function(ret){
+        if(ret.status === 0){
+          Toast('add success');
+        }else{
+          self.$note.remove();
+          // // remove()从DOM中删除所有匹配的元素。 https://jquery.cuishifeng.cn/remove.html
+          Event.fire('waterfall')//add失败为什么要触发瀑布流？？成功都不需要触发，这里我觉得也不需要触发，因为没有新增东西。
+          // index.js里面通过Event.on在绑定了waterfall事件
+          Toast(ret.errorMsg);
+        }
+      });
+    //todo
+  },
+```
+* 那么当你点击增加后，在触发blur或者paste事件后，会触发`self.add()`函数
+```js
+on('blur paste', function() {//当失去焦点(也就是输入完成后离开输入框)或者粘贴的是时候触发
+      // console.log('失去焦点或者粘贴')
+      if( $noteCt.data('before') != $noteCt.html() ) {//如果before这个临时key里面的值不等于$noteCt.html()那就按照下面的代码把这个before临时key设置为$noteCt.html()
+        $noteCt.data('before',$noteCt.html());//把临时before这个key设置为$noteCt.html()
+        self.setLayout();//触发瀑布流事件效果
+        if(self.id){//如果存在id就是执行编辑事件
+          self.edit($noteCt.html())
+        }else{//不存在id就执行增加事件
+          self.add($noteCt.html())
+        }
+```
+* 然后打开浏览器控制台点击路径add，在可以看到Headers里面最下面的Form Data里面有一个前端发送的参数`note:1`
+* 后端通过该路径的`req.body`下面的代码就获取到这个参数
+  * 对于post请求是[req.body](http://expressjs.com/en/5x/api.html#req.body),如果是get请求就是[req.query](http://expressjs.com/en/5x/api.html#req.query)
+* 代码为
+```js
+router.post('/notes/add', function(req, res, next) {
+  // 对于post请求是req.body,如果是get请求就是req.query
+  // http://expressjs.com/en/5x/api.html#req.body
+  // http://expressjs.com/en/5x/api.html#req.query
+  var note=req.body.note
+  console.log('add','note',note)
+});
+```
+* 然后**你可以输入abc123**，然后出发blur事件，就可以在浏览器控制台的add路径里面的Headers的Form Data里面看到`note:abc123`,这是**前端部分**发送的参数，**后端**就看node.js里面的可以看到
+```js
+add note abc123
+```
+* 得到前端传的参数后，那么后端就需要去**数据库**里面创建一条信息保存它了。
+### 数据库的使用，以sequelize为例
+* 首先我们可以在w3c上面简单的了解一下[SQL 数据库教程](https://www.w3school.com.cn/sql/index.asp)，SQL 是用于访问和处理数据库的标准的计算机语言。通俗的解释数据库就是创建一个表。创建条目，增删改查不同条目。
+* 当然我们这里也可以不用深入去了解数据库，可以使用js的一个npm包。常见的比如[mysql](https://www.npmjs.com/package/mysql)，通过它可以去调用数据库的一些语法。
+* 但是这个我们暂时也不用，我们使用**[sequelize](https://www.npmjs.com/package/sequelize)**,[sequelize它的官网](https://sequelize.org/master/),[sequelize中文教程1](https://itbilu.com/nodejs/npm/V1PExztfb.html),[sequelize中文教程2](https://segmentfault.com/a/1190000011583660),他是一个[ORM-对象关系映射，类似于模型化封装](https://baike.baidu.com/item/ORM%E6%A1%86%E6%9E%B6/15541111?fr=aladdin),它可以对应不同的数据库使用，比如MySQL, MariaDB, SQLite and Microsoft SQL Server，说明底层是由一些数据库，但是我们不用去管底层的数据库，通过sequelize工具可以把所有的底层都覆盖了，通过使用相同的接口就可以去操作各种数据库。而且接口封装的还不错
+* 使用sequelize会在本地生成一个文件，数据库就在这个文件里面。比如在目录database里面会有一个文件叫做database.sqlite，可以通过[sqlitestudio](http://www.downza.cn/soft/208363.html)查看具体数据内容
+* 通过[入门](https://sequelize.org/master/manual/getting-started.html)我们可以知道如何安装和连接到数据库，并可以测试连接数据库是否成功，断开数据库连接的操作。
+* 通过[模型基础](https://sequelize.org/master/manual/model-basics.html)我们按照下面代码可以定义一个表
+```js
+const { Sequelize, DataTypes } = require('sequelize');
+const sequelize = new Sequelize('sqlite::memory:');
+
+//创建一个对应数据库里面有一个User这个表，这里面有两项，一个是firstName,类型是DataTypes.STRING字符串，一个是lastName，也是DataTypes.STRING字符串.
+const User = sequelize.define('User', {
+  // Model attributes are defined here
+  firstName: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  lastName: {
+    type: DataTypes.STRING
+    // allowNull defaults to true
+  }
+}, {
+  // Other model options go here
+});
+
+// `sequelize.define` also returns the model
+console.log(User === sequelize.models.User); // true
+```
+* 创建整个表模型方法
+  * User.sync() -如果不存在则创建表（如果已经存在则不执行任何操作）
+  * User.sync({ force: true }) -这将创建表，如果该表已经存在，则将其首先删除
+  * User.sync({ alter: true }) -这将检查数据库中表的当前状态（它具有哪些列，它们的数据类型等），然后在表中进行必要的更改以使其与模型匹配。
+  * 比如
+    ```js
+      await User.sync({ force: true });
+      console.log("The table for the User model was just (re)created!");//也就是强制删除原来的表，重新创建一个新表
+    ```
+* 创建表中的条目，Sequelize提供了[create](https://sequelize.org/master/manual/model-instances.html)将上面显示的build和save方法组合为一个方法的方法
+```js
+const jane = await User.create({ name: "Jane" });
+// Jane exists in the database now!
+console.log(jane instanceof User); // true
+console.log(jane.name); // "Jane"
 ```
 ## 其他
 ### 小技巧安装nrm切换源

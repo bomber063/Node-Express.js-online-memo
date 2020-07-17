@@ -176,7 +176,7 @@ Note.prototype = {
   add: function (msg){
     console.log('addd...');
     var self = this;
-    $.post('/api/notes/add', {note: msg})//新增的需要提供内容。
+    $.post('/api/notes/add', {note: msg})//新增的需要提供内容。如果成功下面只是弹出toast提醒你成功了
       .done(function(ret){
         if(ret.status === 0){
           Toast('add success');

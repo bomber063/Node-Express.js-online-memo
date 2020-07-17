@@ -3,7 +3,7 @@ var router = express.Router();//用express的Router函数
 
 /* GET home page. */
 router.get('/', function(req, res, next) {//req是请求，res是响应，next是下一个执行的函数出口，其实前面还有一个err参数。http://expressjs.com/en/starter/faq.html
-  console.log(req.query)
+  // console.log(req.query)
   // 通过req.query可以查看到里面的信息，一般是get请求用它。http://expressjs.com/en/5x/api.html#req.query
 // 比如我在路径上写http://localhost:4000/?name=bomber
 // 那么就会在node中显示
@@ -24,5 +24,13 @@ router.get('/', function(req, res, next) {//req是请求，res是响应，next�
 });
 //这里有router.get路由,http://expressjs.com/en/5x/api.html#router.METHOD
 // 这里有响应的渲染函数res.render,http://expressjs.com/en/5x/api.html#res.render
+//res.render（view [，locals] [，callback]）
+// 该view参数是一个字符串，它是视图文件来渲染的文件路径。这可以是绝对路径，也可以是相对于views设置的路径。如果路径不包含文件扩展名，则该view engine设置确定文件扩展名。如果路径中确实包含文件扩展名，则Express将（通过require()）为指定的模板引擎加载模块，并使用加载的模块的__express功能对其进行呈现。
+
+// 跟app.js里面做了配置，跟app.set有关
+// 1.因为设置了模板app.set('views', path.join(__dirname, 'views'));//设置模板路径，__dirname当前模块的目录名。http://nodejs.cn/api/modules.html#modules_dirname，也就是设置了当前的views是在views文件夹下面
+// path.join() 方法会将所有给定的 path 片段连接到一起（使用平台特定的分隔符作为定界符），然后规范化生成的路径。http://nodejs.cn/api/path.html#path_p
+
+// 2.配置了模板引擎，app.set('view engine', 'ejs');//模板引擎是ejs
 
 module.exports = router;

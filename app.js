@@ -4,9 +4,8 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
-
+var indexRouter = require('./routes');//这里不写第二级目录，默认就是index.js,也就是require('./routes/index')
+var api = require('./routes/api');
 var app = express();//express是一个node框架，通过调用express这个函数来得到这个app，整个网站的逻辑都是用这个app来处理的。
 
 // view engine setup
@@ -35,7 +34,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 // })
 
 app.use('/', indexRouter);//当请求的路径是主页的时候就交给indexRouter函数去处理，下面的也是一样的意思。
-app.use('/users', usersRouter);
+app.use('/api',api)//如果路由以api开头就交由api对应的组件或者文件对应的函数去处理
+// app.use('/users', usersRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {//如果前面的中间件都没有匹配上就到了这里出现404

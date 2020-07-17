@@ -1,4 +1,7 @@
 // var Toast=require('../mod/toast.js').Toast//因为require()返回的是module.exports对象，但是我们需要里面的Toast属性
+
+require('less/index.less');
+
 var Event=require('../mod/event.js')
 var WaterFall=require('../mod/waterfall')
 // var Note=require('../mod/note').Note
@@ -18,7 +21,12 @@ NoteManager.load();
 
 $('.add-note').on('click', function() {//首页点击添加按钮的时候执行add函数
   NoteManager.add();
+  // new Note(    {
+    // id: 1,   
+  // context: 'i1' 
+// }).add()
 })
+
 
 Event.on('waterfall', function(){
   WaterFall.init($('#content'));

@@ -45,21 +45,21 @@ module.exports = {
             // $: "../lib/jquery-2.0.3.min.js"
             // $: "./js/lib/jquery-2.0.3.min.js"
         }),
-    //     new ExtractTextPlugin("css/index.css"),
-    //     new webpack.LoaderOptionsPlugin({
-    //         options: {
-    //             postcss: [
-    //                 autoprefixer(),
-    //             ]
-    //         }
-    //     })
-    //     // new webpack.optimize.UglifyJsPlugin({
-    //     //     compress: {
-    //     //         warnings: false,
-    //     //     },
-    //     //     output: {
-    //     //         comments: false,
-    //     //     },
-    //     // }),
+        // new ExtractTextPlugin("css/index.css"),
+        // new webpack.LoaderOptionsPlugin({
+        //     options: {
+        //         postcss: [
+        //             autoprefixer(),
+        //         ]
+        //     }
+        // })
+        // new webpack.optimize.UglifyJsPlugin({
+        //     compress: {
+        //         warnings: false,
+        //     },
+        //     output: {
+        //         comments: false,
+        //     },
+        // }),
     ]
 };
