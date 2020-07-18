@@ -2043,3 +2043,120 @@ git branch teach
 ```sh
 git checkout teach
 ```
+### node调试工具
+* 调试工具就是为了不再node.js环境下调试，**因为node.js环境下面调试比较麻烦，如果换成在浏览器中调试会方便很多，显示的内容也会多一些**。
+#### 老师推荐的node-inspector已经不能使用了
+* 安装[node-inspector](https://www.npmjs.com/package/node-inspector),Node Inspector是使用Blink开发人员工具（以前称为WebKit Web Inspector）的Node.js应用程序的调试器接口。
+```js
+npm i node-inspector
+```
+* **老师推荐的node-inspector已经不能使用了，经过测试安装会报错**
+```sh
+node-pre-gyp ERR! Tried to download(404): https://npm.taobao.org/mirrors/node-inspector/debug/v1.0.1/node-v64-win32-x64.tar.gz
+node-pre-gyp ERR! Pre-built binaries not found for v8-debug@1.0.1 and node@10.13.0 (node-v64 ABI, unknown) (falling back to source compile with node-gyp)
+node-pre-gyp http 404 status code downloading tarball https://npm.taobao.org/mirrors/node-inspector/debug/v1.0.1/node-v64-win32-x64.tar.gz
+node-pre-gyp ERR! Tried to download(undefined): https://npm.taobao.org/mirrors/node-inspector/debug/v1.0.1/node-v64-win32-x64.tar.gz
+node-pre-gyp ERR! Pre-built binaries not found for v8-debug@1.0.1 and node@10.13.0 (node-v64 ABI, unknown) (falling back to source compile with node-gyp)
+node-pre-gyp http Connection closed while downloading tarball file
+gyp ERR! configure error
+gyp ERR! stack Error: Can't find Python executable "python", you can set the PYTHON env variable.
+gyp ERR! stack     at PythonFinder.failNoPython (D:\Program Files\nodejs\node_modules\npm\node_modules\node-gyp\lib\configure.js:484:19)
+gyp ERR! stack     at PythonFinder.<anonymous> (D:\Program Files\nodejs\node_modules\npm\node_modules\node-gyp\lib\configure.js:509:16)
+gyp ERR! stack     at D:\Program Files\nodejs\node_modules\npm\node_modules\graceful-fs\polyfills.js:284:29
+gyp ERR! stack     at FSReqWrap.oncomplete (fs.js:154:21)
+gyp ERR! System Windows_NT 10.0.18363
+gyp ERR! command "D:\\Program Files\\nodejs\\node.exe" "D:\\Program Files\\nodejs\\node_modules\\npm\\node_modules\\node-gyp\\bin\\node-gyp.js" "configure" "--fallback-to-build" "--module=D:\\jirengu\\github收集\\Node-Express-online-memo\\node_modules\\v8-debug\\build\\debug\\v1.0.1\\node-v64-win32-x64\\debug.node" "--module_name=debug" "--module_path=D:\\jirengu\\github收集\\Node-Express-online-memo\\node_modules\\v8-debug\\build\\debug\\v1.0.1\\node-v64-win32-x64"
+gyp ERR! cwd D:\jirengu\github收集\Node-Express-online-memo\node_modules\v8-debug
+gyp ERR! node -v v10.13.0
+gyp ERR! node-gyp -v v3.8.0
+gyp ERR! not ok
+node-pre-gyp ERR! build error
+node-pre-gyp ERR! stack Error: Failed to execute 'D:\Program Files\nodejs\node.exe D:\Program Files\nodejs\node_modules\npm\node_modules\node-gyp\bin\node-gyp.js configure --fallback-to-build --module=D:\jirengu\github收集\Node-Express-online-memo\node_modules\v8-debug\build\debug\v1.0.1\node-v64-win32-x64\debug.node --module_name=debug --module_path=D:\jirengu\github收集\Node-Express-online-memo\node_modules\v8-debug\build\debug\v1.0.1\node-v64-win32-x64' (1)
+node-pre-gyp ERR! stack     at ChildProcess.<anonymous> (D:\jirengu\github收集\Node-Express-online-memo\node_modules\node-pre-gyp\lib\util\compile.js:83:29)
+node-pre-gyp ERR! stack     at ChildProcess.emit (events.js:182:13)
+node-pre-gyp ERR! stack     at maybeClose (internal/child_process.js:962:16)
+node-pre-gyp ERR! stack     at Process.ChildProcess._handle.onexit (internal/child_process.js:251:5)
+node-pre-gyp ERR! System Windows_NT 10.0.18363
+node-pre-gyp ERR! command "D:\\Program Files\\nodejs\\node.exe" "D:\\jirengu\\github收集\\Node-Express-online-memo\\node_modules\\node-pre-gyp\\bin\\node-pre-gyp" "install" "--fallback-to-build"
+node-pre-gyp ERR! cwd D:\jirengu\github收集\Node-Express-online-memo\node_modules\v8-debug
+node-pre-gyp ERR! node -v v10.13.0
+node-pre-gyp ERR! node-pre-gyp -v v0.6.39
+node-pre-gyp ERR! not ok
+Failed to execute 'D:\Program Files\nodejs\node.exe D:\Program Files\nodejs\node_modules\npm\node_modules\node-gyp\bin\node-gyp.js configure --fallback-to-build --module=D:\jirengu\github收集\Node-Express-online-memo\node_modules\v8-debug\build\debug\v1.0.1\node-v64-win32-x64\debug.node --module_name=debug --module_path=D:\jirengu\github收集\Node-Express-online-memo\node_modules\v8-debug\build\debug\v1.0.1\node-v64-win32-x64' (1)
+npm WARN css-loader@3.6.0 requires a peer of webpack@^4.0.0 || ^5.0.0 but none is installed. You must install peer dependencies yourself.
+npm WARN style-loader@1.2.1 requires a peer of webpack@^4.0.0 || ^5.0.0 but none is installed. You must install peer dependencies yourself.
+
+npm ERR! code ELIFECYCLE
+npm ERR! errno 1
+npm ERR! v8-debug@1.0.1 install: `node-pre-gyp install --fallback-to-build`
+npm ERR! Exit status 1
+npm ERR!
+npm ERR! Failed at the v8-debug@1.0.1 install script.
+npm ERR! This is probably not a problem with npm. There is likely additional logging output above.
+
+npm ERR! A complete log of this run can be found in:
+npm ERR!     C:\Users\bomber\AppData\Roaming\npm-cache\_logs\2020-07-18T14_47_59_189Z-debug.log
+```
+* 经过搜索，发现已经有多人博客有过描述了
+  * [Node.js 8+之后node-inspector报错如何解决](https://www.jianshu.com/p/44bf228c35ac)
+  * [NodeJs调试工具node-inspector安装失败](https://www.ddkiss.com/archives/106.html)
+  * [node inspector的安装以及使用【已经淘汰了】](https://www.cnblogs.com/chucklu/p/9101886.html)
+#### 现在使用node-inspect，注意不是node-inspector
+* 我的node版本是
+```js
+v10.13.0
+```
+* 自带了node-inspect，所以不用单独安装,当然也可以独立安装.具体说明见[这里](https://nodejs.org/en/docs/guides/debugging-getting-started/#browsers-websockets-and-same-origin-policy)
+* 独立安装的说明：
+  * [node-inspect命令行工具的调试使用方法](https://cloud.tencent.com/developer/article/1438864)
+  * [node-inspect命令行工具的调试使用方法](https://blog.csdn.net/i042416/article/details/89231282)
+* 结合[node官网的调试说明](https://nodejs.org/en/docs/guides/debugging-getting-started/#browsers-websockets-and-same-origin-policy)和[阮一峰的Node 调试工具入门教程](http://www.ruanyifeng.com/blog/2018/03/node-debugger.html)，还有自己的实践。步骤如下
+  1. 因为我的node.js的入口是在bin目录下面的www文件，那么首选运行下面代码
+      ```sh
+        node --inspect ./bin/www
+      ```
+  2. 然后会显示如下信息
+      ```sh
+          $ node --inspect ./bin/www
+          Debugger listening on ws://127.0.0.1:9229/fa0bbfb1-345e-41dd-913f-a337f0d415bf
+          For help, see: https://nodejs.org/en/docs/inspector
+          Debugger attached.
+      ```
+  3. 接下来有两种方式调试
+      1. 第一种是在 Chrome 浏览器的地址栏，键入 `chrome://inspect`或者`about:inspect`，回车后就可以在Device里面**过一会**可以看到一个**Target**，点击进去就可以进入调试界面了,**但是这个方法我不能看到完整的文件目录，经过测试我不知道为什么这里不能显示整个目录，只能显示单个文件**
+      2. 第二种进入调试工具的方法，是在 `http://127.0.0.1:3000` 的窗口打开"开发者工具"，顶部左上角有一个 Node 的绿色标志，点击就可以进入。因为我的bin目录下面的www文件的端口就是默认是3000端口。本地服务器的地址就是`http://127.0.0.1`,也可以是`http://localhost/`,打开开发者工具**左上角有一个绿色的node.js开发工具显示**，点击就可以进入到调试页面了，**这个可以显示整个目录**
+* 我们还可以设置断点
+  * 比如我在routes目录下的api.js文件的这里设置断点
+    ```js
+    var note=req.body.note
+    ```
+  * 当我在`http://127.0.0.1:3000`页面点击添加后，然后输入**文字1**后内容失去焦点后会触发路径`/notes/add`的add函数。
+      ```js
+        router.post('/notes/add', function(req, res, next) {
+          // 对于post请求是req.body,如果是get请求就是req.query
+          // http://expressjs.com/en/5x/api.html#req.body
+          // http://expressjs.com/en/5x/api.html#req.query
+          var note=req.body.note
+          console.log('add','note',note)
+          console.log(req)
+        });
+      ```
+  * 会马上跳转到调试页面，并且右上角会有一个**Paused on breakpoint**，说明Node 主线程处于暂停（paused）阶段。此时我们还可以打印出当前变量比如req,res,req.body,req.body.note.
+      ```js
+        req
+        IncomingMessage {_readableState: ReadableState, readable: false, _events: {…}, _eventsCount: 0, _maxListeners: undefined, …}
+        res
+        ServerResponse {_events: {…}, _eventsCount: 2, _maxListeners: undefined, output: Array(0), outputEncodings: Array(0), …}
+        req.body
+        {note: "1"}
+        req.body.note
+        "1"
+      ```
+  *  Sources 面板，右侧可以看到 Watch、Call Stack、Scope、Breakpoints 等折叠项。打开 Scope 折叠项，可以看到 Local 作用域和 Global 作用域里面的所有变量。
+  * Local 作用域里面，变量req里面的body的note的值是1，双击把它改成别的，比如改成bomber,然后我们在控制打出req.body.note就变成了bomber
+      ```sh
+        req.body.note
+        "bomber"
+      ```
+  * 命令行下，按下 ctrl + c，终止运行app.js
+  * 另一个[参考博客_Nodejs 使用 Chrome DevTools 调试 --inspect-brk](https://www.cnblogs.com/CyLee/p/9320569.html)

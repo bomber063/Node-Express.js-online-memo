@@ -24,6 +24,7 @@ router.post('/notes/add', function(req, res, next) {
   // http://expressjs.com/en/5x/api.html#req.query
   var note=req.body.note
   console.log('add','note',note)
+  console.log(req)
 });
 /* 修改note */
 router.post('/notes/edit', function(req, res, next) {
