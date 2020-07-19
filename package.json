@@ -18,6 +18,8 @@
     "less-loader": "^4.1.0",
     "morgan": "~1.9.1",
     "onchange": "^7.0.2",
+    "sequelize": "^6.3.3",
+    "sqlite3": "^5.0.0",
     "style-loader": "^1.2.1",
     "webpack": "^2.2.1"
   }

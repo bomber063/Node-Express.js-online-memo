@@ -1947,6 +1947,268 @@ const jane = await User.create({ name: "Jane" });
 console.log(jane instanceof User); // true
 console.log(jane.name); // "Jane"
 ```
+### 开始使用sequelize
+* sequelize跟mysql区别不大，不过mysql还需要配置用户名和密码。
+* 首先根据[官网安装说明](https://sequelize.org/master/manual/getting-started.html#installing)，选择安装sequelize
+```sh
+npm install --save sequelize
+```
+* 我成功的版本是
+```sh
++ sequelize@6.3.3
+added 16 packages from 78 contributors in 4.745s
+```
+* 还要安装sqlite3
+```sh
+npm install --save sqlite3
+```
+* 我安装成功的版本如下
+```sh
++ sqlite3@5.0.0
+added 19 packages from 72 contributors, removed 65 packages, updated 4 packages and moved1 package in 7.926s
+```
+#### 首先创建数据库
+* 创建数据库也就是和数据库进行一个连接，创建一个文件夹model里面文件是note.js
+```js
+const { Sequelize } = require('sequelize');
+
+// Option 2: Passing parameters separately (sqlite)
+const sequelize = new Sequelize({
+    host: 'localhost',//数据库的主机
+  dialect: 'sqlite',//选用的数据库方言
+  storage: '../database/database.sqlite'//数据库的存放路径database.sqlite文件会自动创建
+});
+
+//Sequelize构造函数除了可以接受host,dialect,storage，还可以接受很多选项。它们在API参考中记录。
+//https://sequelize.org/master/manual/getting-started.html#installing
+//https://sequelize.org/master/class/lib/sequelize.js~Sequelize.html#instance-constructor-constructor
+```
+* [Sequelize构造函数](https://sequelize.org/master/manual/getting-started.html#installing)除了可以接受host,dialect,storage，还可以接受很多选项。它们在[API参考中记录](https://sequelize.org/master/class/lib/sequelize.js~Sequelize.html#instance-constructor-constructor)。
+
+#### 测试数据库连接成功
+* 做好之后就可以**测试连接情况了**,使用该[.authenticate()](https://sequelize.org/master/class/lib/sequelize.js~Sequelize.html#instance-method-authenticate)功能测试连接是否正常：
+```js
+sequelize.authenticate()
+    .then(function(){
+        console.log('Connection has been established successfully.');
+    })
+    .catch(function(err){
+        console.error('Unable to connect to the database:', error);
+    })
+```
+* 当然上面的代码可以变化为try await catch,[官网的例子](https://sequelize.org/master/manual/getting-started.html)没有写[async关键字](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Statements/async_function),并且还需要把这个函数执行或者立即执行都可以。
+```js
+// 上面的代码可以变化为try await catch
+!async function f2(){
+try {
+    await sequelize.authenticate();
+    console.log('Connection has been established successfully.');
+  } catch (error) {
+    console.error('Unable to connect to the database:', error);
+  }
+}()
+```
+* 测试结果显示成功
+```sh
+$ node ./model/note.js
+Executing (default): SELECT 1+1 AS result
+Connection has been established successfully.
+```
+* 如果用try语句没有async函数会报错如下
+```sh
+$ node ./model/note.js
+D:\jirengu\github收集\Node-Express-online-memo\model\note.js:28
+    await sequelize.authenticate();
+    ^^^^^
+
+SyntaxError: await is only valid in async function
+    at new Script (vm.js:79:7)
+    at createScript (vm.js:251:10)
+    at Object.runInThisContext (vm.js:303:10)
+    at Module._compile (internal/modules/cjs/loader.js:656:28)
+    at Object.Module._extensions..js (internal/modules/cjs/loader.js:699:10)
+    at Module.load (internal/modules/cjs/loader.js:598:32)
+    at tryModuleLoad (internal/modules/cjs/loader.js:537:12)
+    at Function.Module._load (internal/modules/cjs/loader.js:529:3)
+    at Function.Module.runMain (internal/modules/cjs/loader.js:741:12)
+    at startup (internal/bootstrap/node.js:285:19)
+```
+* **这里连接成功后按照老师的显示应该会在目录database里面生成一个database.sqlite文件，但是我这里没有生成很奇怪**
+#### 最新版本目录写错了,导致虽然连接成功但是不能生成数据文件
+* 最新版本可能已经不能按照前面老师的目录索引写路径了
+```js
+const sequelize = new Sequelize({
+    host: 'localhost',//数据库的主机
+  dialect: 'sqlite',//选用的数据库方言
+  storage: '../database/database.sqlite'//数据库的存放路径database.sqlite文件会自动创建
+});
+// 上面的目录写错了，应该按照下面的目录，默认是在最外面的目录，并且这里最前面不能用斜杆，比如'/database/database.sqlite'也是不会成功的
+const sequelize = new Sequelize({
+    host: 'localhost',//数据库的主机
+    dialect: 'sqlite',//选用的数据库方言
+    storage: 'database/database.sqlite'//数据库的存放路径database.sqlite文件会自动创建
+});
+```
+#### 测试Sequelize.STRING和DataTypes.STRING
+* 经过测试[DataTypes](https://sequelize.org/master/variable/index.html#static-variable-DataTypes)
+```js
+Note.sync({ force: true }).then(function (){
+    Note.create({ text: "Jane" });
+    console.log("The table for the User model was just (re)created!");
+}).then(function(){
+    Note.findAll().then(function (notes) {
+        // console.log(notes)
+        console.log(Sequelize.STRING,'Sequelize.STRING')
+        console.log(DataTypes.STRING,'DataTypes.STRING')
+        // console.log(DataTypes,'DataTypes')
+        // console.log(Sequelize,'Sequelize')
+    });
+})
+```
+* 显示的内容如下，都是一样的
+```js
+$ node ./model/note.js
+Executing (default): DROP TABLE IF EXISTS `notes`;
+Executing (default): CREATE TABLE IF NOT EXISTS `notes` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `text` VARCHAR
+(255) NOT NULL, `createdAt` DATETIME NOT NULL, `updatedAt` DATETIME NOT NULL);
+Executing (default): PRAGMA INDEX_LIST(`notes`)
+The table for the User model was just (re)created!
+Executing (default): SELECT `id`, `text`, `createdAt`, `updatedAt` FROM `notes` AS `note`;
+Executing (default): INSERT INTO `notes` (`id`,`text`,`createdAt`,`updatedAt`) VALUES (NULL,$1,$2,$3);
+{ [Function: STRING]
+  types:
+   { postgres: [ 'varchar' ],
+     mysql: [ 'VAR_STRING' ],
+     mariadb: [ 'VAR_STRING' ],
+     sqlite: [ 'VARCHAR', 'VARCHAR BINARY' ],
+     mssql: [ 231, 173 ] },
+  key: 'STRING' } 'Sequelize.STRING'
+{ [Function: STRING]
+  types:
+   { postgres: [ 'varchar' ],
+     mysql: [ 'VAR_STRING' ],
+     mariadb: [ 'VAR_STRING' ],
+     sqlite: [ 'VARCHAR', 'VARCHAR BINARY' ],
+     mssql: [ 231, 173 ] },
+  key: 'STRING' } 'DataTypes.STRING'
+```
+* 经过把DataTypes和Sequelize打印出来，我们可以知道，DataTypes在Sequelize的原型链的一个环节上面，所以就类似于Object和Array一样，Array有Object的属性。
+```js
+Note.sync({ force: true }).then(function (){
+    Note.create({ text: "Jane" });
+    console.log("The table for the User model was just (re)created!");
+}).then(function(){
+    Note.findAll().then(function (notes) {
+        // console.log(notes)
+        // console.log(Sequelize.STRING,'Sequelize.STRING')
+        // console.log(DataTypes.STRING,'DataTypes.STRING')
+        console.log(DataTypes,'DataTypes')
+        console.log(Sequelize,'Sequelize')
+    });
+})
+```
+### 测试增删改查
+#### 创建和查找数据
+* 首先是创建，用到[API——create](https://sequelize.org/master/class/lib/model.js~Model.html#static-method-create),例子说明请看[官网模型实例这里](https://sequelize.org/master/manual/model-instances.html)
+* 然后查找，用到[API——findAll](https://sequelize.org/master/class/lib/model.js~Model.html#static-method-findAll)，例子说明请看[官网模型查找基础](https://sequelize.org/master/manual/model-querying-basics.html)
+```js
+// User.sync() -如果不存在则创建表（如果已经存在则不执行任何操作）
+// User.sync({ force: true }) -这将创建表，如果该表已经存在，则将其首先删除
+// User.sync({ alter: true }) -这将检查数据库中表的当前状态（它具有哪些列，它们的数据类型等），然后在表中进行必要的更改以使其与模型匹配。
+
+// 注意这里需要异步去执行
+Note.sync({ force: true }).then(function (){//异步创建这个数据表
+    Note.create({ text: "Jane" });//，然后往这个表里面增加内容
+    console.log("The table for the User model was just (re)created!");
+}).then(function(){
+    // raw 是返回原始数据结果https://sequelize.org/master/class/lib/model.js~Model.html#static-method-findAll
+    Note.findAll({raw:true}).then(function (notes) {//查找内容
+        console.log(notes)//查找到就去展示这个数据
+        // console.log(Sequelize.STRING,'Sequelize.STRING')
+        // console.log(DataTypes.STRING,'DataTypes.STRING')
+        // console.log(DataTypes,'DataTypes')
+        // console.log(Sequelize,'Sequelize')
+    });
+})
+```
+##### 使用raw:true
+* 如果我不使用`raw:true`，
+```js
+Note.sync({ force: true }).then(function (){//异步创建这个数据表
+    Note.create({ text: "Jane" });//，然后往这个表里面增加内容
+    console.log("The table for the User model was just (re)created!");
+}).then(function(){
+    // raw 是返回原始数据结果https://sequelize.org/master/class/lib/model.js~Model.html#static-method-findAll
+    Note.findAll().then(function (notes) {//查找内容
+        console.log(notes)//查找到就去展示这个数据
+        // console.log(Sequelize.STRING,'Sequelize.STRING')
+        // console.log(DataTypes.STRING,'DataTypes.STRING')
+        // console.log(DataTypes,'DataTypes')
+        // console.log(Sequelize,'Sequelize')
+    });
+})
+```
+* 结果为
+```js
+$ node ./model/note.js
+Executing (default): DROP TABLE IF EXISTS `notes`;
+Executing (default): CREATE TABLE IF NOT EXISTS `notes` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `text` VARCHAR
+(255) NOT NULL, `createdAt` DATETIME NOT NULL, `updatedAt` DATETIME NOT NULL);
+Executing (default): PRAGMA INDEX_LIST(`notes`)
+The table for the User model was just (re)created!
+Executing (default): SELECT `id`, `text`, `createdAt`, `updatedAt` FROM `notes` AS `note`;
+Executing (default): INSERT INTO `notes` (`id`,`text`,`createdAt`,`updatedAt`) VALUES (NULL,$1,$2,$3);
+[ note {
+    dataValues:
+     { id: 1,
+       text: 'Jane',
+       createdAt: 2020-07-19T12:10:28.742Z,
+       updatedAt: 2020-07-19T12:10:28.742Z },
+    _previousDataValues:
+     { id: 1,
+       text: 'Jane',
+       createdAt: 2020-07-19T12:10:28.742Z,
+       updatedAt: 2020-07-19T12:10:28.742Z },
+    _changed: Set {},
+    _options:
+     { isNewRecord: false,
+       _schema: null,
+       _schemaDelimiter: '',
+       raw: true,
+       attributes: [Array] },
+    isNewRecord: false } ]
+```
+* 可以看到很多原始数据以外的其他内容，如果我们使用了`raw:true`，
+```js
+Note.sync({ force: true }).then(function (){//异步创建这个数据表
+    Note.create({ text: "Jane1" });//，然后往这个表里面增加内容
+    console.log("The table for the User model was just (re)created!");
+}).then(function(){
+    // raw 是返回原始数据结果https://sequelize.org/master/class/lib/model.js~Model.html#static-method-findAll
+    Note.findAll({raw:true}).then(function (notes) {//查找内容
+        console.log(notes)//查找到就去展示这个数据
+        // console.log(Sequelize.STRING,'Sequelize.STRING')
+        // console.log(DataTypes.STRING,'DataTypes.STRING')
+        // console.log(DataTypes,'DataTypes')
+        // console.log(Sequelize,'Sequelize')
+    });
+})
+```
+* 显示的结果为,可以看到只有最原始的数据，没有其他信息。
+```js
+$ node ./model/note.js
+Executing (default): DROP TABLE IF EXISTS `notes`;
+Executing (default): CREATE TABLE IF NOT EXISTS `notes` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `text` VARCHAR
+(255) NOT NULL, `createdAt` DATETIME NOT NULL, `updatedAt` DATETIME NOT NULL);
+Executing (default): PRAGMA INDEX_LIST(`notes`)
+The table for the User model was just (re)created!
+Executing (default): SELECT `id`, `text`, `createdAt`, `updatedAt` FROM `notes` AS `note`;
+Executing (default): INSERT INTO `notes` (`id`,`text`,`createdAt`,`updatedAt`) VALUES (NULL,$1,$2,$3);
+[ { id: 1,
+    text: 'Jane',
+    createdAt: '2020-07-19 12:12:38.424 +00:00',
+    updatedAt: '2020-07-19 12:12:38.424 +00:00' } ]
+```
 ## 其他
 ### 小技巧安装nrm切换源
 * [npr文档](https://www.npmjs.com/package/nrm)
