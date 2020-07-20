@@ -2111,6 +2111,7 @@ Note.sync({ force: true }).then(function (){
 #### 创建和查找数据
 * 首先是创建，用到[API——create](https://sequelize.org/master/class/lib/model.js~Model.html#static-method-create),例子说明请看[官网模型实例这里](https://sequelize.org/master/manual/model-instances.html)
 * 然后查找，用到[API——findAll](https://sequelize.org/master/class/lib/model.js~Model.html#static-method-findAll)，例子说明请看[官网模型查找基础](https://sequelize.org/master/manual/model-querying-basics.html)
+* 注意这里需要异步去执行
 ```js
 // User.sync() -如果不存在则创建表（如果已经存在则不执行任何操作）
 // User.sync({ force: true }) -这将创建表，如果该表已经存在，则将其首先删除
@@ -2132,6 +2133,7 @@ Note.sync({ force: true }).then(function (){//异步创建这个数据表
 })
 ```
 ##### 使用raw:true
+* 默认情况下，所有finder方法的结果都是模型类的实例（而不只是纯JavaScript对象）。这意味着在数据库返回结果之后，Sequelize会自动将所有内容包装在适当的实例对象中。在少数情况下，当结果太多时，这种包装可能会效率低下。要禁用此包装并收到简单的响应，[{ raw: true }请将其作为选项传递给finder方法。](https://sequelize.org/master/manual/model-querying-finders.html)
 * 如果我不使用`raw:true`，
 ```js
 Note.sync({ force: true }).then(function (){//异步创建这个数据表
@@ -2208,6 +2210,466 @@ Executing (default): INSERT INTO `notes` (`id`,`text`,`createdAt`,`updatedAt`) V
     text: 'Jane',
     createdAt: '2020-07-19 12:12:38.424 +00:00',
     updatedAt: '2020-07-19 12:12:38.424 +00:00' } ]
+```
+##### 查找某一项数据
+* 根据[官网模型查询基础](https://sequelize.org/master/manual/model-querying-basics.html)来测试
+*  数据表里面的本身的数据是
+```js
+[ { id: 1,
+    text: 'bomber',
+    createdAt: '2020-07-20 04:39:10.044 +00:00',
+    updatedAt: '2020-07-20 04:39:10.044 +00:00' },
+  { id: 2,
+    text: 'Jane',
+    createdAt: '2020-07-20 04:39:41.261 +00:00',
+    updatedAt: '2020-07-20 04:39:41.261 +00:00' } ]
+```
+* 使用以下attributes选项，可以查询所有的对应的属性
+  * 比如查询所有的text属性
+    ```js
+      Note.findAll({raw:true,attributes: ['text']})
+      .then(function(notes){
+          console.log(notes)
+      })
+    ```
+  * 显示的结果
+    ```js
+        $ node ./model/note.js
+        Executing (default): SELECT `text` FROM `notes` AS `note`;
+        [ { text: 'bomber' }, { text: 'Jane' } ]
+    ```
+  * 比如查询所有的text并且id属性
+      ```js
+          Note.findAll({raw:true,attributes: ['text','id']})
+          .then(function(notes){
+              console.log(notes)
+          })
+      ```
+  * 显示的结果
+    ```js
+        $ node ./model/note.js
+        Executing (default): SELECT `text`, `id` FROM `notes` AS `note`;
+        [ { text: 'bomber', id: 1 }, { text: 'Jane', id: 2 } ]
+    ```
+* 可以使用嵌套数组来重命名属性：比如把`id`修改为`'id重命名为编号`
+  ```js
+    Note.findAll({raw:true,attributes: ['text', ['id', 'id重命名为编号']]})
+    .then(function(notes){
+        console.log(notes)
+    })
+  ```
+* 结果为
+  ```js
+    $ node ./model/note.js
+    Executing (default): SELECT `text`, `id` AS `id重命名为编号` FROM `notes` AS `note`;
+    [ { text: 'bomber', 'id重命名为编号': 1 },
+      { text: 'Jane', 'id重命名为编号': 2 } ]
+  ```
+* 您可以[sequelize.fn](https://sequelize.org/master/class/lib/sequelize.js~Sequelize.html#static-method-fn)用来进行聚合。,fn函数里面的第一个参数[最常用](https://itbilu.com/nodejs/npm/V1PExztfb.html)的就是`count,sum,max,min`，[其他的参数可以参考模型的静态方法(Static Method Summary)里面](https://sequelize.org/master/class/lib/model.js~Model.html),使用聚合函数时，必须给它一个别名，以便能够从模型中访问它。在下面的示例中，您可以使用`n_id`来获得id的数量
+  * 举例count——统计数据库中的元素数
+    ```js
+      Note.findAll({
+          raw:true,
+          attributes: ['text', [sequelize.fn('count', sequelize.col('id')), 'n_id']]})
+      .then(function(notes){
+          console.log(notes)
+      })
+    ```
+  * 结果可以看到有2个
+    ```js
+      $ node ./model/note.js
+      Executing (default): SELECT `text`, count(`id`) AS `n_id` FROM `notes` AS `note`;
+      [ { text: 'bomber', n_id: 2 } ]
+    ```
+  * 举例max——查找指定表中最大值
+    ```js
+      Note.findAll({
+          raw:true,
+          attributes: ['text', [sequelize.fn('max', sequelize.col('id')), 'max_id']]})
+      .then(function(notes){
+          console.log(notes)
+      })
+    ```
+  * 结果为
+    ```js
+      $ node ./model/note.js
+      Executing (default): SELECT `text`, max(`id`) AS `max_id` FROM `notes` AS `note`;
+      [ { text: 'Jane', max_id: 2 } ]
+    ```
+  * 举例min - 查找指定表中最小值
+    ```js
+      Note.findAll({
+          raw:true,
+          attributes: ['text', [sequelize.fn('min', sequelize.col('id')), 'min_id']]})
+      .then(function(notes){
+          console.log(notes)
+      })
+    ```
+  * 结果为
+    ```js
+      $ node ./model/note.js
+      Executing (default): SELECT `text`, min(`id`) AS `min_id` FROM `notes` AS `note`;
+      [ { text: 'bomber', min_id: 1 } ]
+    ```
+  * 举例sum - 对指定属性求和
+    ```js
+      Note.findAll({
+          raw:true,
+          attributes: ['text', [sequelize.fn('sum', sequelize.col('id')), 'sum_id']]})
+      .then(function(notes){
+          console.log(notes)
+      })
+    ```
+  * 结果为
+    ```js
+      $ node ./model/note.js
+      Executing (default): SELECT `text`, sum(`id`) AS `sum_id` FROM `notes` AS `note`;
+      [ { text: 'bomber', sum_id: 3 } ]
+    ```
+* 查找使用聚合值并把它加到原始数据中作为属性,用到include,但是这里显示的是**第一个,这里的第一个是 text: 'bomber'**
+```js
+Note.findAll({
+    raw:true,
+    attributes: {
+        include:[
+            [sequelize.fn('sum', sequelize.col('id')), 'sum_id']
+        ]
+    }
+})
+.then(function(notes){
+    console.log(notes)
+})
+```
+* 结果为
+```js
+$ node ./model/note.js
+Executing (default): SELECT `id`, `text`, `createdAt`, `updatedAt`, sum(`id`) AS `sum_id` FROM `notes` AS `note
+`;
+[ { id: 1,
+    text: 'bomber',
+    createdAt: '2020-07-20 04:39:10.044 +00:00',
+    updatedAt: '2020-07-20 04:39:10.044 +00:00',
+    sum_id: 3 } ]
+
+```
+* 同样，也可以删除一些选定的属性：用到exclude
+```js
+Note.findAll({
+    raw:true,
+    attributes: {
+        exclude: ['text']
+    }
+})
+.then(function(notes){
+    console.log(notes)
+})
+```
+* 查询的结果里面就不包含text属性。结果为
+```js
+$ node ./model/note.js
+Executing (default): SELECT `id`, `createdAt`, `updatedAt` FROM `notes` AS `note`;
+[ { id: 1,
+    createdAt: '2020-07-20 04:39:10.044 +00:00',
+    updatedAt: '2020-07-20 04:39:10.044 +00:00' },
+  { id: 2,
+    createdAt: '2020-07-20 04:39:41.261 +00:00',
+    updatedAt: '2020-07-20 04:39:41.261 +00:00' } ]
+
+```
+##### 应用WHERE子句
+* 该where选项用于过滤查询。where子句有很多运算符，可从以Symbols形式从[Op](https://sequelize.org/master/variable/index.html#static-variable-Op)使用。
+* 选取属性为text，属性对应的值为`bomber`的信息
+```js
+Note.findAll({
+    raw:true,
+    where: {
+        text: 'bomber'
+      }
+})
+.then(function(notes){
+    console.log(notes)
+})
+```
+* 结果为
+```js
+$ node ./model/note.js
+Executing (default): SELECT `id`, `text`, `createdAt`, `updatedAt` FROM `notes` AS `note` WHERE `note`.`text` =
+ 'bomber';
+[ { id: 1,
+    text: 'bomber',
+    createdAt: '2020-07-20 04:39:10.044 +00:00',
+    updatedAt: '2020-07-20 04:39:10.044 +00:00' } ]
+```
+* 当没有[Op]((https://sequelize.org/master/variable/index.html#static-variable-Op))显示的传入的时候，因此默认情况下Sequelize假定进行相等比较。上面的代码等效于：
+```js
+const { Sequelize,DataTypes,Op } = require('sequelize');
+//注意要把Op通过require传过来
+Note.findAll({
+    raw:true,
+    where: {
+        text: {[Op.eq]: 'bomber'}
+      }
+})
+.then(function(notes){
+    console.log(notes)
+})
+```
+* 结果一样
+```js
+$ node ./model/note.js
+Executing (default): SELECT `id`, `text`, `createdAt`, `updatedAt` FROM `notes` AS `note` WHERE `note`.`text` =
+ 'bomber';
+[ { id: 1,
+    text: 'bomber',
+    createdAt: '2020-07-20 04:39:10.044 +00:00',
+    updatedAt: '2020-07-20 04:39:10.044 +00:00' } ]
+```
+* 多项目一起查询
+```js
+Note.findAll({
+    raw:true,
+    where: {
+        text: 'bomber',
+        id:'1'
+      }
+})
+.then(function(notes){
+    console.log(notes)
+})
+```
+* 就可以查询到text为bomber，并且id为1对应的数据
+```js
+$ node ./model/note.js
+Executing (default): SELECT `id`, `text`, `createdAt`, `updatedAt` FROM `notes` AS `note` WHERE `note`.`text` =
+ 'bomber' AND `note`.`id` = '1';
+[ { id: 1,
+    text: 'bomber',
+    createdAt: '2020-07-20 04:39:10.044 +00:00',
+    updatedAt: '2020-07-20 04:39:10.044 +00:00' } ]
+```
+* 我们可以把多项目一起查询使用[Op](https://sequelize.org/master/variable/index.html#static-variable-Op)的and这个字段
+```js
+Note.findAll({
+    raw: true,
+    where: {
+        [Op.and]: [
+            { text: 'bomber'},
+            { id: '1' }
+        ]
+    }
+})
+    .then(function (notes) {
+        console.log(notes)
+    })
+```
+* 结果一样
+```js
+$ node ./model/note.js
+Executing (default): SELECT `id`, `text`, `createdAt`, `updatedAt` FROM `notes` AS `note` WHERE (`note`.`text`
+= 'bomber' AND `note`.`id` = '1');
+[ { id: 1,
+    text: 'bomber',
+    createdAt: '2020-07-20 04:39:10.044 +00:00',
+    updatedAt: '2020-07-20 04:39:10.044 +00:00' } ]
+```
+* 那or字段也很好理解了,就是或的关系
+```js
+Note.findAll({
+    raw: true,
+    where: {
+        [Op.or]: [
+            { id: '1'},
+            { id: '2' }
+        ]
+    }
+})
+    .then(function (notes) {
+        console.log(notes)
+    })
+```
+* 结果为
+```js
+$ node ./model/note.js
+Executing (default): SELECT `id`, `text`, `createdAt`, `updatedAt` FROM `notes` AS `note` WHERE (`note`.`id` =
+'1' OR `note`.`id` = '2');
+[ { id: 1,
+    text: 'bomber',
+    createdAt: '2020-07-20 04:39:10.044 +00:00',
+    updatedAt: '2020-07-20 04:39:10.044 +00:00' },
+  { id: 2,
+    text: 'Jane',
+    createdAt: '2020-07-20 04:39:41.261 +00:00',
+    updatedAt: '2020-07-20 04:39:41.261 +00:00' } ]
+```
+* 由于上述内容or涉及同一领域，因此Sequelize允许您使用略有不同的结构，该结构更易读并产生相同的行为：
+```js
+Note.findAll({
+    raw: true,
+    where: {
+        id:{
+            [Op.or]: [
+                '1',
+                '2'
+            ]
+        }
+    }
+})
+    .then(function (notes) {
+        console.log(notes)
+    })
+```
+* 结果一样
+```js
+$ node ./model/note.js
+Executing (default): SELECT `id`, `text`, `createdAt`, `updatedAt` FROM `notes` AS `note` WHERE (`note`.`id` =
+'1' OR `note`.`id` = '2');
+[ { id: 1,
+    text: 'bomber',
+    createdAt: '2020-07-20 04:39:10.044 +00:00',
+    updatedAt: '2020-07-20 04:39:10.044 +00:00' },
+  { id: 2,
+    text: 'Jane',
+    createdAt: '2020-07-20 04:39:41.261 +00:00',
+    updatedAt: '2020-07-20 04:39:41.261 +00:00' } ]
+```
+* [Sequelize提供了多个运算符](https://sequelize.org/master/manual/model-querying-basics.html)
+* Op.in的简写语法
+```js
+Note.findAll({
+    raw: true,
+    where: {
+        id:{
+            [Op.in]: [
+                '1',
+                '2'
+            ]
+            // 可以简写为id: [1,2] 
+        }
+    }
+})
+    .then(function (notes) {
+        console.log(notes)
+    })
+```
+* 结果为
+```js
+$ node ./model/note.js
+Executing (default): SELECT `id`, `text`, `createdAt`, `updatedAt` FROM `notes` AS `note` WHERE `note`.`id` IN
+('1', '2');
+[ { id: 1,
+    text: 'bomber',
+    createdAt: '2020-07-20 04:39:10.044 +00:00',
+    updatedAt: '2020-07-20 04:39:10.044 +00:00' },
+  { id: 2,
+    text: 'Jane',
+    createdAt: '2020-07-20 04:39:41.261 +00:00',
+    updatedAt: '2020-07-20 04:39:41.261 +00:00' } ]
+```
+* [or与in的区别](https://blog.csdn.net/u011944141/article/details/77968482)
+* [运算符Op.and，Op.or并且Op.not可以用于创建任意复杂的嵌套逻辑比较](https://sequelize.org/master/manual/model-querying-basics.html)
+* 更多内容请查询[高级的查询使用函数，不推荐的操作符别名，简单的update查询，delete查询，批量创建]
+* 最后一个
+```js
+const { Sequelize, DataTypes, Op } = require('sequelize');
+// var Sequelize=require('sequelize')
+// Option 2: Passing parameters separately (sqlite)
+const sequelize = new Sequelize({
+    host: 'localhost',//数据库的主机
+    dialect: 'sqlite',//选用的数据库方言
+    storage: 'database/database.sqlite'//数据库的存放路径database.sqlite文件会自动创建
+});
+
+
+// id:1  text:hello ,createdAt:'创建事件' updatedAt：'更新时间'
+const Note = sequelize.define('note', {//定义一个名字叫做note的表结构
+    // Model attributes are defined here
+    text: {//note的内容
+        type: Sequelize.STRING,
+        allowNull: false
+    },
+    admin:{
+        type: Sequelize.STRING,
+        allowNull: true
+    }
+});
+
+
+// 注意这里需要异步去执行
+Note.sync({ force: true }).then(function (){//异步创建这个数据表
+    Note.bulkCreate([
+        { text: "Jane" ,admin:'111'},
+        { text:'bomber',admin:'aa'}
+    ],{ fields: ['text'] });//，这里用了fields，那么就会导致amin的值是null
+    console.log("The table for the User model was just (re)created!");
+}).then(function(){
+    // raw 是返回原始数据结果https://sequelize.org/master/class/lib/model.js~Model.html#static-method-findAll
+    Note.findAll({raw:true}).then(function (notes) {//查找内容
+        console.log(notes)//查找到就去展示这个数据
+    });
+})
+```
+* 结果为
+```js
+$ node ./model/note.js
+Executing (default): DROP TABLE IF EXISTS `notes`;
+Executing (default): CREATE TABLE IF NOT EXISTS `notes` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `text` VARCHAR
+(255) NOT NULL, `admin` VARCHAR(255), `createdAt` DATETIME NOT NULL, `updatedAt` DATETIME NOT NULL);
+Executing (default): PRAGMA INDEX_LIST(`notes`)
+The table for the User model was just (re)created!
+Executing (default): INSERT INTO `notes` (`text`,`createdAt`,`updatedAt`) VALUES ('Jane','2020-07-20 14:43:48.1
+59 +00:00','2020-07-20 14:43:48.159 +00:00'),('bomber','2020-07-20 14:43:48.159 +00:00','2020-07-20 14:43:48.15
+9 +00:00');
+Executing (default): SELECT `id`, `text`, `admin`, `createdAt`, `updatedAt` FROM `notes` AS `note`;
+[ { id: 1,
+    text: 'Jane',
+    admin: null,
+    createdAt: '2020-07-20 14:43:48.159 +00:00',
+    updatedAt: '2020-07-20 14:43:48.159 +00:00' },
+  { id: 2,
+    text: 'bomber',
+    admin: null,
+    createdAt: '2020-07-20 14:43:48.159 +00:00',
+    updatedAt: '2020-07-20 14:43:48.159 +00:00' } ]
+
+```
+* 如果前面的代码没有加fields
+```js
+Note.sync({ force: true }).then(function (){//异步创建这个数据表
+    Note.bulkCreate([
+        { text: "Jane" ,admin:'111'},
+        { text:'bomber',admin:'aa'}
+    ]);//，这里用了fields，那么就会导致amin的值是null,没有用就会正常保存
+    console.log("The table for the User model was just (re)created!");
+}).then(function(){
+    // raw 是返回原始数据结果https://sequelize.org/master/class/lib/model.js~Model.html#static-method-findAll
+    Note.findAll({raw:true}).then(function (notes) {//查找内容
+        console.log(notes)//查找到就去展示这个数据
+    });
+})
+```
+* 那么结果有会有admin保存
+```js
+$ node ./model/note.js
+Executing (default): DROP TABLE IF EXISTS `notes`;
+Executing (default): CREATE TABLE IF NOT EXISTS `notes` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `text` VARCHAR
+(255) NOT NULL, `admin` VARCHAR(255), `createdAt` DATETIME NOT NULL, `updatedAt` DATETIME NOT NULL);
+Executing (default): PRAGMA INDEX_LIST(`notes`)
+The table for the User model was just (re)created!
+Executing (default): INSERT INTO `notes` (`id`,`text`,`admin`,`createdAt`,`updatedAt`) VALUES (NULL,'Jane','111
+','2020-07-20 14:43:19.787 +00:00','2020-07-20 14:43:19.787 +00:00'),(NULL,'bomber','aa','2020-07-20 14:43:19.7
+87 +00:00','2020-07-20 14:43:19.787 +00:00');
+Executing (default): SELECT `id`, `text`, `admin`, `createdAt`, `updatedAt` FROM `notes` AS `note`;
+[ { id: 1,
+    text: 'Jane',
+    admin: '111',
+    createdAt: '2020-07-20 14:43:19.787 +00:00',
+    updatedAt: '2020-07-20 14:43:19.787 +00:00' },
+  { id: 2,
+    text: 'bomber',
+    admin: 'aa',
+    createdAt: '2020-07-20 14:43:19.787 +00:00',
+    updatedAt: '2020-07-20 14:43:19.787 +00:00' } ]
+
 ```
 ## 其他
 ### 小技巧安装nrm切换源
