@@ -39,8 +39,14 @@ const Note = sequelize.define('note', {//定义一个名字叫做note的表结�
     // Model attributes are defined here
     text: {//note的内容
         type: Sequelize.STRING,
-        allowNull: false
+        // allowNull: true,
+        // omitNull:true,//忽略null，如果设置为true，那么
+        // defaultValue: ''
+        // primaryKey: true,
+        // defaultValue: '',
+        allowNull: true,//如果设置为false不允许出现null，出现null的都不显示出来，也就是查询不到
     },
+    // omitNull:false
     // id 会自动去创建，官网的名字叫做UUID，存储唯一通识标识符列,但是经过测试显示的还是叫做id的属性
     // https://sequelize.org/master/class/lib/data-types.js~UUID.html
     // 还有默认自己创建的是createdAt创建事件 and updatedAt更新时间
@@ -53,28 +59,45 @@ const Note = sequelize.define('note', {//定义一个名字叫做note的表结�
 // User.sync({ alter: true }) -这将检查数据库中表的当前状态（它具有哪些列，它们的数据类型等），然后在表中进行必要的更改以使其与模型匹配。
 
 // 注意这里需要异步去执行
-// Note.sync({ force:false }).then(function (){//异步创建这个数据表
-//     Note.create({ text: "jane" });//，然后往这个表里面增加内容
-//     console.log("The table for the User model was just (re)created!");
-// }).then(function(){
-//     // raw 是返回原始数据结果https://sequelize.org/master/class/lib/model.js~Model.html#static-method-findAll
-//     Note.findAll({raw:true}).then(function (notes) {//查找内容
-//         console.log(notes)//查找到就去展示这个数据
-//         // console.log(Sequelize.STRING,'Sequelize.STRING')
-//         // console.log(DataTypes.STRING,'DataTypes.STRING')
-//         // console.log(DataTypes,'DataTypes')
-//         // console.log(Sequelize,'Sequelize')
-//     });
-// })
+Note.sync({ force: true }).then(function () {//异步创建这个数据表
+    Note.bulkCreate([//把text为null的更新为text为1
+        //     ,{
+        //     where:{
+        //         text:null
+        //     }
+        // }
+        { text: null },
+        { text: 'bomber' },
+        { text: 'jane' }
 
-
-Note.findAll({
-    raw: true,
-    attributes: ['text']
+    ]);//，然后往这个表里面增加内容
+    console.log("The table for the User model was just (re)created!");
+}).then(function () {
+    // raw 是返回原始数据结果https://sequelize.org/master/class/lib/model.js~Model.html#static-method-findAll
+    Note.findAll({
+        raw: true,
+        order: [
+            ['text', 'NULLS LAST']
+        ]
+    }).then(function (notes) {//查找内容
+        console.log(notes)//查找到就去展示这个数据
+        // console.log(Sequelize.STRING,'Sequelize.STRING')
+        // console.log(DataTypes.STRING,'DataTypes.STRING')
+        // console.log(DataTypes,'DataTypes')
+        // console.log(Sequelize,'Sequelize')
+    });
 })
-    .then(function (notes) {
-        console.log(notes)
-    })
+
+
+// Note.findAll({
+//     raw: true,
+//     order: [
+//         ['text','NULLS last']
+//     ]
+// })
+//     .then(function (notes) {
+//         console.log(notes)
+//     })
 
 
 

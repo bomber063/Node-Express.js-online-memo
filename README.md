@@ -1950,6 +1950,11 @@ console.log(jane.name); // "Jane"
 ### 开始使用sequelize
 * sequelize跟mysql区别不大，不过mysql还需要配置用户名和密码。
 * 首先根据[官网安装说明](https://sequelize.org/master/manual/getting-started.html#installing)，选择安装sequelize
+* 今天发现有**三个官网**
+  1. [sequelize_v5](https://sequelize.org/v5/)
+  2. [sequelize_v3](https://sequelize.org/v3/)
+  2. [sequelize_master](https://sequelize.org/master/)
+* [Sequelize的一些小技巧](http://toobug.s.f2er.info/article/amp/sequelize-tricks.html)
 ```sh
 npm install --save sequelize
 ```
@@ -2567,8 +2572,8 @@ Executing (default): SELECT `id`, `text`, `createdAt`, `updatedAt` FROM `notes` 
 ```
 * [or与in的区别](https://blog.csdn.net/u011944141/article/details/77968482)
 * [运算符Op.and，Op.or并且Op.not可以用于创建任意复杂的嵌套逻辑比较](https://sequelize.org/master/manual/model-querying-basics.html)
-* 更多内容请查询[高级的查询使用函数，不推荐的操作符别名，简单的update查询，delete查询，批量创建]
-* 最后一个
+* 更多内容请查询[高级的查询使用函数，不推荐的操作符别名，简单的update查询，delete查询，批量创建](https://sequelize.org/master/manual/model-querying-basics.html)
+* bulkCreate()接受一个fields选项，该数组定义必须考虑的字段（**其余字段将被忽略**）。
 ```js
 const { Sequelize, DataTypes, Op } = require('sequelize');
 // var Sequelize=require('sequelize')
@@ -2647,7 +2652,7 @@ Note.sync({ force: true }).then(function (){//异步创建这个数据表
     });
 })
 ```
-* 那么结果有会有admin保存
+* 那么结果就会有admin保存
 ```js
 $ node ./model/note.js
 Executing (default): DROP TABLE IF EXISTS `notes`;
@@ -2669,7 +2674,242 @@ Executing (default): SELECT `id`, `text`, `admin`, `createdAt`, `updatedAt` FROM
     admin: 'aa',
     createdAt: '2020-07-20 14:43:19.787 +00:00',
     updatedAt: '2020-07-20 14:43:19.787 +00:00' } ]
+```
+##### omitNull和allowNull
+###### omitNull
+* [omitNull——sequelize](https://sequelize.org/master/class/lib/sequelize.js~Sequelize.html)和[omitNull——model](https://sequelize.org/master/class/lib/model.js~Model.html)跟allowNull很像，官方解释的意思是一个标志，用于定义是否将空值作为值传递给CREATE / UPDATE SQL查询。（**经过测试它的意思是能否查询到值为null**）
+* 比如我设置的`omitNull:true`,就代表忽略null。**但是我测试之后，发现这个omitNull并没有用，不管设置true还是false都不会忽略null**
+* 不过有写我查询得到的问题，但是我测试的好像都不太对，先留着吧
+  * [使用omitNull选项时如何将属性设置为null](https://groups.google.com/forum/#!topic/sequelize/1H4jniJkBAw)
+  * [how does omitNull work in sequelize](https://stackoverflow.com/questions/40082179/how-does-omitnull-work-in-sequelize)
+  * [omitNull not working on primaryKey column in Sequelize](https://stackoverflow.com/questions/52184418/omitnull-not-working-on-primarykey-column-in-sequelize)
+  * [Is there any way to omit null values? #11013](https://github.com/sequelize/sequelize/issues/11013)
+  * [Sequelize 中文API文档－1. 快速入门、Sequelize类-搜索omitNull](https://itbilu.com/nodejs/npm/VkYIaRPz-.html#api-instance-define)
+###### allowNull
+* 如果设置`allowNull为false`，**那么创建text为null的时候不会保存也不会显示出来**
+```js
+const Note = sequelize.define('note', {//定义一个名字叫做note的表结构
+    // Model attributes are defined here
+    text: {//note的内容
+        type: Sequelize.STRING,
+        allowNull:false,//如果设置为false不允许出现null，出现null的都不显示出来，也就是查询不到
+    },
+});
+// 注意这里需要异步去执行
+Note.sync({ force:true}).then(function (){//异步创建这个数据表
+    Note.create({text:null}
+        );
+    console.log("The table for the User model was just (re)created!");
+}).then(function(){
+    Note.findAll({raw:true}).then(function (notes) {//查找内容
+        console.log(notes)//查找到就去展示这个数据
+    });
+})
+```
+* 结果为空,并且报错说不能为null，不然不符合规则（也就是前面设置的`allowNull为false`）
+```js
+$ node ./model/note.js
+Executing (default): DROP TABLE IF EXISTS `notes`;
+Executing (default): CREATE TABLE IF NOT EXISTS `notes` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `text` VARCHAR
+(255) NOT NULL, `createdAt` DATETIME NOT NULL, `updatedAt` DATETIME NOT NULL);
+Executing (default): PRAGMA INDEX_LIST(`notes`)
+The table for the User model was just (re)created!
+Executing (default): SELECT `id`, `text`, `createdAt`, `updatedAt` FROM `notes` AS `note`;
+(node:1584) UnhandledPromiseRejectionWarning: SequelizeValidationError: notNull Violation: note.text cannot be
+null
+    at InstanceValidator._validate (D:\jirengu\github收集\Node-Express-online-memo\node_modules\sequelize\lib\i
+nstance-validator.js:78:13)
+(node:1584) UnhandledPromiseRejectionWarning: Unhandled promise rejection. This error originated either by thro
+wing inside of an async function without a catch block, or by rejecting a promise which was not handled with .c
+atch(). (rejection id: 1)
+(node:1584) [DEP0018] DeprecationWarning: Unhandled promise rejections are deprecated. In the future, promise r
+ejections that are not handled will terminate the Node.js process with a non-zero exit code.
+[]
+```
+* 如果设置`allowNull为true`，**那么创建text为null的时候就会保存也会显示出来**
+```js
+const Note = sequelize.define('note', {//定义一个名字叫做note的表结构
+    // Model attributes are defined here
+    text: {//note的内容
+        type: Sequelize.STRING,
+        allowNull:true,//如果设置为true允许出现null
+    },
+});
+```
+* 其他的代码不变，继续测试得到结果不报错，并且有一个包括了text为null的对象。
+```js
+$ node ./model/note.js
+Executing (default): DROP TABLE IF EXISTS `notes`;
+Executing (default): CREATE TABLE IF NOT EXISTS `notes` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `text` VARCHAR
+(255), `createdAt` DATETIME NOT NULL, `updatedAt` DATETIME NOT NULL);
+Executing (default): PRAGMA INDEX_LIST(`notes`)
+The table for the User model was just (re)created!
+Executing (default): SELECT `id`, `text`, `createdAt`, `updatedAt` FROM `notes` AS `note`;
+Executing (default): INSERT INTO `notes` (`id`,`text`,`createdAt`,`updatedAt`) VALUES (NULL,$1,$2,$3);
+[ { id: 1,
+    text: null,
+    createdAt: '2020-07-21 14:08:43.031 +00:00',
+    updatedAt: '2020-07-21 14:08:43.031 +00:00' } ]
+```
+***
+* 注意这里如果第一次出现设置`allowNull为true`也报错的时候，需要`Note.sync({ force:true})`强制清除数据库重置数据库。**我刚开始没有发现这个方法弄了很久才弄清楚**
+* 我是看到这个问题[Unhandled rejection SequelizeUniqueConstraintError: Validation error](https://stackoverflow.com/questions/40709409/unhandled-rejection-sequelizeuniqueconstrainterror-validation-error)最下面一个回答才了解到的
+***
+* 我查询到关于allowNull的使用
+  * [如何.update()在sequelize中的值为NULL](https://oomake.com/question/13572159)
+  * [官网也在验证和约束这节对allowNull进行了一些说明](https://sequelize.org/master/manual/validations-and-constraints.html)
+##### 查询排序
+* 首先我们用之前学习的批量创建数据[bulkCreate](https://sequelize.org/master/class/lib/model.js~Model.html#static-method-bulkCreate)，然后分别测试查询排序的顺序(分别是ASC, DESC, NULLS FIRST, NULLS LAST)，这里小写也可以。
+  * ASC——表示按ID列顺序排 
+  * DESC——表示按ID列倒序排
+  * NULLS FIRST——表示null排在有值行的前面  
+  * NULLS LAST——表示null排在有值行的后面
+  * 详细的说明可以查看[这篇文章——数据库NULL值的默认排序行为与查询、索引定义规范 - nulls first\last, asc\desc](https://www.cnblogs.com/telwanggs/p/10762042.html)
+  * 另一篇文章——[oracle 和 db2 排序 order by desc/asc nulls last/nulss first 的用法将空值放到最后最前](https://blog.csdn.net/jiujie395/article/details/8983140/)
+  * [SQL里desc和asc是什么意思啊](https://zhidao.baidu.com/question/42956420.html)
+* 测试参考[官网](https://sequelize.org/master/manual/model-querying-basics.html)和[中文网站](https://itbilu.com/nodejs/npm/VJIR1CjMb.html) 
+* 首先测试ASC
+```js
+Note.sync({ force: true }).then(function () {//异步创建这个数据表
+    Note.bulkCreate([
+        { text: null },
+        { text: 'bomber' },
+        { text: 'jane' }
+    ]);
+    console.log("The table for the User model was just (re)created!");
+}).then(function () {
+    Note.findAll({
+        raw: true,
+        order: [
+            ['text', 'ASC']
+        ]
+    }).then(function (notes) {//查找内容
+        console.log(notes)//查找到就去展示这个数据
+    });
+})
+```
+* 结果为**ID列顺序排**
+```js
+$ node ./model/note.js
+Executing (default): DROP TABLE IF EXISTS `notes`;
+Executing (default): CREATE TABLE IF NOT EXISTS `notes` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `text` VARCHAR
+(255), `createdAt` DATETIME NOT NULL, `updatedAt` DATETIME NOT NULL);
+Executing (default): PRAGMA INDEX_LIST(`notes`)
+The table for the User model was just (re)created!
+Executing (default): INSERT INTO `notes` (`id`,`text`,`createdAt`,`updatedAt`) VALUES (NULL,NULL,'2020-07-21 14
+:44:33.331 +00:00','2020-07-21 14:44:33.331 +00:00'),(NULL,'bomber','2020-07-21 14:44:33.331 +00:00','2020-07-2
+1 14:44:33.331 +00:00'),(NULL,'jane','2020-07-21 14:44:33.331 +00:00','2020-07-21 14:44:33.331 +00:00');
+Executing (default): SELECT `id`, `text`, `createdAt`, `updatedAt` FROM `notes` AS `note` ORDER BY `note`.`text
+` ASC;
+[ { id: 1,
+    text: null,
+    createdAt: '2020-07-21 14:44:33.331 +00:00',
+    updatedAt: '2020-07-21 14:44:33.331 +00:00' },
+  { id: 2,
+    text: 'bomber',
+    createdAt: '2020-07-21 14:44:33.331 +00:00',
+    updatedAt: '2020-07-21 14:44:33.331 +00:00' },
+  { id: 3,
+    text: 'jane',
+    createdAt: '2020-07-21 14:44:33.331 +00:00',
+    updatedAt: '2020-07-21 14:44:33.331 +00:00' } ]
+```
+* 修改为DESC排序
+```js
+        order: [
+            ['text', 'DESC']
+        ]
+```
+* 结果为**ID列倒序排**
+```js
+$ node ./model/note.js
+Executing (default): DROP TABLE IF EXISTS `notes`;
+Executing (default): CREATE TABLE IF NOT EXISTS `notes` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `text` VARCHAR
+(255), `createdAt` DATETIME NOT NULL, `updatedAt` DATETIME NOT NULL);
+Executing (default): PRAGMA INDEX_LIST(`notes`)
+The table for the User model was just (re)created!
+Executing (default): INSERT INTO `notes` (`id`,`text`,`createdAt`,`updatedAt`) VALUES (NULL,NULL,'2020-07-21 14
+:45:53.798 +00:00','2020-07-21 14:45:53.798 +00:00'),(NULL,'bomber','2020-07-21 14:45:53.798 +00:00','2020-07-2
+1 14:45:53.798 +00:00'),(NULL,'jane','2020-07-21 14:45:53.798 +00:00','2020-07-21 14:45:53.798 +00:00');
+Executing (default): SELECT `id`, `text`, `createdAt`, `updatedAt` FROM `notes` AS `note` ORDER BY `note`.`text
+` DESC;
+[ { id: 3,
+    text: 'jane',
+    createdAt: '2020-07-21 14:45:53.798 +00:00',
+    updatedAt: '2020-07-21 14:45:53.798 +00:00' },
+  { id: 2,
+    text: 'bomber',
+    createdAt: '2020-07-21 14:45:53.798 +00:00',
+    updatedAt: '2020-07-21 14:45:53.798 +00:00' },
+  { id: 1,
+    text: null,
+    createdAt: '2020-07-21 14:45:53.798 +00:00',
+    updatedAt: '2020-07-21 14:45:53.798 +00:00' } ]
 
+```
+* 修改为NULLS FIRST排序
+```js
+        order: [
+            ['text', 'NULLS FIRST']
+        ]
+```
+* 结果为**null排在有值行的前面**  
+```js
+$ node ./model/note.js
+Executing (default): DROP TABLE IF EXISTS `notes`;
+Executing (default): CREATE TABLE IF NOT EXISTS `notes` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `text` VARCHAR
+(255), `createdAt` DATETIME NOT NULL, `updatedAt` DATETIME NOT NULL);
+Executing (default): PRAGMA INDEX_LIST(`notes`)
+The table for the User model was just (re)created!
+Executing (default): INSERT INTO `notes` (`id`,`text`,`createdAt`,`updatedAt`) VALUES (NULL,NULL,'2020-07-21 14
+:47:52.504 +00:00','2020-07-21 14:47:52.504 +00:00'),(NULL,'bomber','2020-07-21 14:47:52.504 +00:00','2020-07-2
+1 14:47:52.504 +00:00'),(NULL,'jane','2020-07-21 14:47:52.504 +00:00','2020-07-21 14:47:52.504 +00:00');
+Executing (default): SELECT `id`, `text`, `createdAt`, `updatedAt` FROM `notes` AS `note` ORDER BY `note`.`text
+` NULLS FIRST;
+[ { id: 1,
+    text: null,
+    createdAt: '2020-07-21 14:47:52.504 +00:00',
+    updatedAt: '2020-07-21 14:47:52.504 +00:00' },
+  { id: 2,
+    text: 'bomber',
+    createdAt: '2020-07-21 14:47:52.504 +00:00',
+    updatedAt: '2020-07-21 14:47:52.504 +00:00' },
+  { id: 3,
+    text: 'jane',
+    createdAt: '2020-07-21 14:47:52.504 +00:00',
+    updatedAt: '2020-07-21 14:47:52.504 +00:00' } ]
+```
+* * 修改为 NULLS LAST排序
+```js
+        order: [
+            ['text', 'NULLS LAST']
+        ]
+```
+* 结果为**null排在有值行的后面**
+```js
+$ node ./model/note.js
+Executing (default): DROP TABLE IF EXISTS `notes`;
+Executing (default): CREATE TABLE IF NOT EXISTS `notes` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `text` VARCHAR
+(255), `createdAt` DATETIME NOT NULL, `updatedAt` DATETIME NOT NULL);
+Executing (default): PRAGMA INDEX_LIST(`notes`)
+The table for the User model was just (re)created!
+Executing (default): INSERT INTO `notes` (`id`,`text`,`createdAt`,`updatedAt`) VALUES (NULL,NULL,'2020-07-21 14
+:49:19.811 +00:00','2020-07-21 14:49:19.811 +00:00'),(NULL,'bomber','2020-07-21 14:49:19.811 +00:00','2020-07-2
+1 14:49:19.811 +00:00'),(NULL,'jane','2020-07-21 14:49:19.811 +00:00','2020-07-21 14:49:19.811 +00:00');
+Executing (default): SELECT `id`, `text`, `createdAt`, `updatedAt` FROM `notes` AS `note` ORDER BY `note`.`text
+` NULLS LAST;
+[ { id: 2,
+    text: 'bomber',
+    createdAt: '2020-07-21 14:49:19.811 +00:00',
+    updatedAt: '2020-07-21 14:49:19.811 +00:00' },
+  { id: 3,
+    text: 'jane',
+    createdAt: '2020-07-21 14:49:19.811 +00:00',
+    updatedAt: '2020-07-21 14:49:19.811 +00:00' },
+  { id: 1,
+    text: null,
+    createdAt: '2020-07-21 14:49:19.811 +00:00',
+    updatedAt: '2020-07-21 14:49:19.811 +00:00' } ]
 ```
 ## 其他
 ### 小技巧安装nrm切换源
