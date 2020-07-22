@@ -40,12 +40,17 @@ const Note = sequelize.define('note', {//定义一个名字叫做note的表结�
     text: {//note的内容
         type: Sequelize.STRING,
         // allowNull: true,
-        // omitNull:true,//忽略null，如果设置为true，那么
+        // omitNull:false,//忽略null，如果设置为true，那么
         // defaultValue: ''
         // primaryKey: true,
         // defaultValue: '',
         allowNull: true,//如果设置为false不允许出现null，出现null的都不显示出来，也就是查询不到
     },
+    name:{
+        // omitNull:false,
+        type: Sequelize.STRING,
+        allowNull: true
+    }
     // omitNull:false
     // id 会自动去创建，官网的名字叫做UUID，存储唯一通识标识符列,但是经过测试显示的还是叫做id的属性
     // https://sequelize.org/master/class/lib/data-types.js~UUID.html
@@ -66,26 +71,26 @@ Note.sync({ force: true }).then(function () {//异步创建这个数据表
         //         text:null
         //     }
         // }
-        { text: null },
+        { name: 'aaa'},
+        // { name: null },
+        { name: '你好'},
+        // { text: null },
         { text: 'bomber' },
-        { text: 'jane' }
+        { text: 'jane' },
 
     ]);//，然后往这个表里面增加内容
     console.log("The table for the User model was just (re)created!");
 }).then(function () {
     // raw 是返回原始数据结果https://sequelize.org/master/class/lib/model.js~Model.html#static-method-findAll
-    Note.findAll({
-        raw: true,
-        order: [
-            ['text', 'NULLS LAST']
-        ]
-    }).then(function (notes) {//查找内容
+    Note.sum('id')
+    .then(function (notes) {//查找内容
         console.log(notes)//查找到就去展示这个数据
         // console.log(Sequelize.STRING,'Sequelize.STRING')
         // console.log(DataTypes.STRING,'DataTypes.STRING')
         // console.log(DataTypes,'DataTypes')
         // console.log(Sequelize,'Sequelize')
     });
+    
 })
 
 

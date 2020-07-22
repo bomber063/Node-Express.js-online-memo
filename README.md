@@ -2911,6 +2911,309 @@ Executing (default): SELECT `id`, `text`, `createdAt`, `updatedAt` FROM `notes` 
     createdAt: '2020-07-21 14:49:19.811 +00:00',
     updatedAt: '2020-07-21 14:49:19.811 +00:00' } ]
 ```
+##### group分组
+* group分组与前面的order查询排序很相似，不过没有第二个参数（比如，没有ASC, DESC, NULLS FIRST, etc）
+* 我创建一个包括text和name属性的数据，然后分别查询text和name
+* 首先创建，然后按照name分组
+```js
+Note.sync({ force: true }).then(function () {//异步创建这个数据表
+    Note.bulkCreate([//把text为null的更新为text为1
+        { name: 'aaa'},
+        { name: '你好'},
+        { text: 'bomber' },
+        { text: 'jane' },
+
+    ]);//，然后往这个表里面增加内容
+    console.log("The table for the User model was just (re)created!");
+}).then(function () {
+    // raw 是返回原始数据结果https://sequelize.org/master/class/lib/model.js~Model.html#static-method-findAll
+    Note.findAll({
+        raw: true,
+        group:'name'
+    }).then(function (notes) {//查找内容
+        console.log(notes)//查找到就去展示这个数据
+    });
+})
+```
+* 结果显示,**第一个没有name或者name为null的会排序在第一位，然后再显示全部的name属性**。
+```js
+$ node ./model/note.js
+Executing (default): DROP TABLE IF EXISTS `notes`;
+Executing (default): CREATE TABLE IF NOT EXISTS `notes` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `text` VARCHAR
+(255), `name` VARCHAR(255), `createdAt` DATETIME NOT NULL, `updatedAt` DATETIME NOT NULL);
+Executing (default): PRAGMA INDEX_LIST(`notes`)
+The table for the User model was just (re)created!
+Executing (default): INSERT INTO `notes` (`id`,`name`,`createdAt`,`updatedAt`,`text`) VALUES (NULL,'aaa','2020-
+07-22 10:54:23.939 +00:00','2020-07-22 10:54:23.939 +00:00',NULL),(NULL,'你好','2020-07-22 10:54:23.939 +00:00'
+,'2020-07-22 10:54:23.939 +00:00',NULL),(NULL,NULL,'2020-07-22 10:54:23.939 +00:00','2020-07-22 10:54:23.939 +0
+0:00','bomber'),(NULL,NULL,'2020-07-22 10:54:23.939 +00:00','2020-07-22 10:54:23.939 +00:00','jane');
+Executing (default): SELECT `id`, `text`, `name`, `createdAt`, `updatedAt` FROM `notes` AS `note` GROUP BY `nam
+e`;
+[ { id: 3,
+    text: 'bomber',
+    name: null,//因为第一个没有name的是id为3的对象，然后再去查找name对应的所有对象。
+    createdAt: '2020-07-22 10:54:23.939 +00:00',
+    updatedAt: '2020-07-22 10:54:23.939 +00:00' },
+  { id: 1,
+    text: null,
+    name: 'aaa',
+    createdAt: '2020-07-22 10:54:23.939 +00:00',
+    updatedAt: '2020-07-22 10:54:23.939 +00:00' },
+  { id: 2,
+    text: null,
+    name: '你好',
+    createdAt: '2020-07-22 10:54:23.939 +00:00',
+    updatedAt: '2020-07-22 10:54:23.939 +00:00' } ]
+```
+* 然后按照text分组
+```js
+    Note.findAll({
+        raw: true,
+        group:'text'
+    })
+```
+* 结果为，第一个没有text的就是id为1,然后查找所有的text，也就是id3和4
+```js
+$ node ./model/note.js
+Executing (default): DROP TABLE IF EXISTS `notes`;
+Executing (default): CREATE TABLE IF NOT EXISTS `notes` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `text` VARCHAR
+(255), `name` VARCHAR(255), `createdAt` DATETIME NOT NULL, `updatedAt` DATETIME NOT NULL);
+Executing (default): PRAGMA INDEX_LIST(`notes`)
+The table for the User model was just (re)created!
+Executing (default): INSERT INTO `notes` (`id`,`name`,`createdAt`,`updatedAt`,`text`) VALUES (NULL,'aaa','2020-
+07-22 10:55:55.253 +00:00','2020-07-22 10:55:55.253 +00:00',NULL),(NULL,'你好','2020-07-22 10:55:55.253 +00:00'
+,'2020-07-22 10:55:55.253 +00:00',NULL),(NULL,NULL,'2020-07-22 10:55:55.253 +00:00','2020-07-22 10:55:55.253 +0
+0:00','bomber'),(NULL,NULL,'2020-07-22 10:55:55.253 +00:00','2020-07-22 10:55:55.253 +00:00','jane');
+Executing (default): SELECT `id`, `text`, `name`, `createdAt`, `updatedAt` FROM `notes` AS `note` GROUP BY `tex
+t`;
+[ { id: 1,
+    text: null,
+    name: 'aaa',
+    createdAt: '2020-07-22 10:55:55.253 +00:00',
+    updatedAt: '2020-07-22 10:55:55.253 +00:00' },
+  { id: 3,
+    text: 'bomber',
+    name: null,
+    createdAt: '2020-07-22 10:55:55.253 +00:00',
+    updatedAt: '2020-07-22 10:55:55.253 +00:00' },
+  { id: 4,
+    text: 'jane',
+    name: null,
+    createdAt: '2020-07-22 10:55:55.253 +00:00',
+    updatedAt: '2020-07-22 10:55:55.253 +00:00' } ]
+```
+##### 限制limit和分页offset（分页就是跳过前面多少个）
+* 比如我们同样创建并限制2个
+```js
+Note.sync({ force: true }).then(function () {//异步创建这个数据表
+    Note.bulkCreate([//把text为null的更新为text为1
+        { name: 'aaa'},
+        { name: '你好'},
+        { text: 'bomber' },
+        { text: 'jane' },
+
+    ]);//，然后往这个表里面增加内容
+    console.log("The table for the User model was just (re)created!");
+}).then(function () {
+    Note.findAll({
+        raw: true,
+        limit: 2
+    }).then(function (notes) {//查找内容
+        console.log(notes)//查找到就去展示这个数据
+    });
+})
+```
+* 结果**创建的4个对象里面只会显示前面两个对象**
+```js
+$ node ./model/note.js
+Executing (default): DROP TABLE IF EXISTS `notes`;
+Executing (default): CREATE TABLE IF NOT EXISTS `notes` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `text` VARCHAR
+(255), `name` VARCHAR(255), `createdAt` DATETIME NOT NULL, `updatedAt` DATETIME NOT NULL);
+Executing (default): PRAGMA INDEX_LIST(`notes`)
+The table for the User model was just (re)created!
+Executing (default): INSERT INTO `notes` (`id`,`name`,`createdAt`,`updatedAt`,`text`) VALUES (NULL,'aaa','2020-
+07-22 11:05:42.341 +00:00','2020-07-22 11:05:42.341 +00:00',NULL),(NULL,'你好','2020-07-22 11:05:42.341 +00:00'
+,'2020-07-22 11:05:42.341 +00:00',NULL),(NULL,NULL,'2020-07-22 11:05:42.341 +00:00','2020-07-22 11:05:42.341 +0
+0:00','bomber'),(NULL,NULL,'2020-07-22 11:05:42.341 +00:00','2020-07-22 11:05:42.341 +00:00','jane');
+Executing (default): SELECT `id`, `text`, `name`, `createdAt`, `updatedAt` FROM `notes` AS `note` LIMIT 2;
+[ { id: 1,
+    text: null,
+    name: 'aaa',
+    createdAt: '2020-07-22 11:05:42.341 +00:00',
+    updatedAt: '2020-07-22 11:05:42.341 +00:00' },
+  { id: 2,
+    text: null,
+    name: '你好',
+    createdAt: '2020-07-22 11:05:42.341 +00:00',
+    updatedAt: '2020-07-22 11:05:42.341 +00:00' } ]
+```
+* 设置offset为2，也就是跳过前面两个
+```js
+    Note.findAll({
+        raw: true,
+        offset: 2
+    })
+```
+* 结果为，**跳过前面两个，只显示4个对象的最后两个对象**
+```js
+$ node ./model/note.js
+Executing (default): DROP TABLE IF EXISTS `notes`;
+Executing (default): CREATE TABLE IF NOT EXISTS `notes` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `text` VARCHAR
+(255), `name` VARCHAR(255), `createdAt` DATETIME NOT NULL, `updatedAt` DATETIME NOT NULL);
+Executing (default): PRAGMA INDEX_LIST(`notes`)
+The table for the User model was just (re)created!
+Executing (default): INSERT INTO `notes` (`id`,`name`,`createdAt`,`updatedAt`,`text`) VALUES (NULL,'aaa','2020-
+07-22 11:07:52.003 +00:00','2020-07-22 11:07:52.003 +00:00',NULL),(NULL,'你好','2020-07-22 11:07:52.003 +00:00'
+,'2020-07-22 11:07:52.003 +00:00',NULL),(NULL,NULL,'2020-07-22 11:07:52.003 +00:00','2020-07-22 11:07:52.003 +0
+0:00','bomber'),(NULL,NULL,'2020-07-22 11:07:52.003 +00:00','2020-07-22 11:07:52.003 +00:00','jane');
+Executing (default): SELECT `id`, `text`, `name`, `createdAt`, `updatedAt` FROM `notes` AS `note` LIMIT 2, 1000
+0000000000;
+[ { id: 3,
+    text: 'bomber',
+    name: null,
+    createdAt: '2020-07-22 11:07:52.003 +00:00',
+    updatedAt: '2020-07-22 11:07:52.003 +00:00' },
+  { id: 4,
+    text: 'jane',
+    name: null,
+    createdAt: '2020-07-22 11:07:52.003 +00:00',
+    updatedAt: '2020-07-22 11:07:52.003 +00:00' } ]
+```
+* 集合limit和offset。跳过2个，限制1个
+```js
+    Note.findAll({
+        raw: true,
+        offset: 2,
+        limit:1
+    })
+```
+* 那么4个对象前面两个跳过，限制一个，那么只会显示第三个对象
+```js
+$ node ./model/note.js
+Executing (default): DROP TABLE IF EXISTS `notes`;
+Executing (default): CREATE TABLE IF NOT EXISTS `notes` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `text` VARCHAR
+(255), `name` VARCHAR(255), `createdAt` DATETIME NOT NULL, `updatedAt` DATETIME NOT NULL);
+Executing (default): PRAGMA INDEX_LIST(`notes`)
+The table for the User model was just (re)created!
+Executing (default): INSERT INTO `notes` (`id`,`name`,`createdAt`,`updatedAt`,`text`) VALUES (NULL,'aaa','2020-
+07-22 11:09:28.701 +00:00','2020-07-22 11:09:28.701 +00:00',NULL),(NULL,'你好','2020-07-22 11:09:28.701 +00:00'
+,'2020-07-22 11:09:28.701 +00:00',NULL),(NULL,NULL,'2020-07-22 11:09:28.701 +00:00','2020-07-22 11:09:28.701 +0
+0:00','bomber'),(NULL,NULL,'2020-07-22 11:09:28.701 +00:00','2020-07-22 11:09:28.701 +00:00','jane');
+Executing (default): SELECT `id`, `text`, `name`, `createdAt`, `updatedAt` FROM `notes` AS `note` LIMIT 2, 1;
+[ { id: 3,
+    text: 'bomber',
+    name: null,
+    createdAt: '2020-07-22 11:09:28.701 +00:00',
+    updatedAt: '2020-07-22 11:09:28.701 +00:00' } ]
+```
+##### count次数
+* 创建4个对象，然后找到id大于2的次数
+```js
+Note.sync({ force: true }).then(function () {//异步创建这个数据表
+    Note.bulkCreate([//把text为null的更新为text为1
+        { name: 'aaa'},
+        { name: '你好'},
+        { text: 'bomber' },
+        { text: 'jane' },
+
+    ]);
+    console.log("The table for the User model was just (re)created!");
+}).then(function () {
+    Note.count({
+        raw: true,
+        where: {
+            id: {
+              [Op.gt]: 2//id大于2的
+            }
+          }
+    }).then(function (notes) {//查找内容
+        console.log(`id大于2出现次数为${notes}`)//查找到就去展示这个数据
+    });
+})
+```
+* 显示的结果为
+```js
+$ node ./model/note.js
+Executing (default): DROP TABLE IF EXISTS `notes`;
+Executing (default): CREATE TABLE IF NOT EXISTS `notes` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `text` VARCHAR
+(255), `name` VARCHAR(255), `createdAt` DATETIME NOT NULL, `updatedAt` DATETIME NOT NULL);
+Executing (default): PRAGMA INDEX_LIST(`notes`)
+The table for the User model was just (re)created!
+Executing (default): INSERT INTO `notes` (`id`,`name`,`createdAt`,`updatedAt`,`text`) VALUES (NULL,'aaa','2020-
+07-22 11:17:52.581 +00:00','2020-07-22 11:17:52.581 +00:00',NULL),(NULL,'你好','2020-07-22 11:17:52.581 +00:00'
+,'2020-07-22 11:17:52.581 +00:00',NULL),(NULL,NULL,'2020-07-22 11:17:52.581 +00:00','2020-07-22 11:17:52.581 +0
+0:00','bomber'),(NULL,NULL,'2020-07-22 11:17:52.581 +00:00','2020-07-22 11:17:52.581 +00:00','jane');
+Executing (default): SELECT count(*) AS `count` FROM `notes` AS `note` WHERE `note`.`id` > 2;
+id大于2出现次数为2
+```
+##### max最大, min最小, sum求和
+* 最大值max
+```js
+Note.sync({ force: true }).then(function () {//异步创建这个数据表
+    Note.bulkCreate([//把text为null的更新为text为1
+        { name: 'aaa'},
+        { name: '你好'},
+        { text: 'bomber' },
+        { text: 'jane' },
+    ]);//，然后往这个表里面增加内容
+    console.log("The table for the User model was just (re)created!");
+}).then(function () {
+    Note.max('id')
+    .then(function (notes) {//查找内容
+        console.log(notes)//查找到就去展示这个数据
+    });
+    
+})
+```
+* 结果为4
+```js
+$ node ./model/note.js
+Executing (default): DROP TABLE IF EXISTS `notes`;
+Executing (default): CREATE TABLE IF NOT EXISTS `notes` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `text` VARCHAR
+(255), `name` VARCHAR(255), `createdAt` DATETIME NOT NULL, `updatedAt` DATETIME NOT NULL);
+Executing (default): PRAGMA INDEX_LIST(`notes`)
+The table for the User model was just (re)created!
+Executing (default): SELECT max(`id`) AS `max` FROM `notes` AS `note`;
+Executing (default): INSERT INTO `notes` (`id`,`name`,`createdAt`,`updatedAt`,`text`) VALUES (NULL,'aaa','2020-
+07-22 11:24:36.935 +00:00','2020-07-22 11:24:36.935 +00:00',NULL),(NULL,'你好','2020-07-22 11:24:36.935 +00:00'
+,'2020-07-22 11:24:36.935 +00:00',NULL),(NULL,NULL,'2020-07-22 11:24:36.935 +00:00','2020-07-22 11:24:36.935 +0
+0:00','bomber'),(NULL,NULL,'2020-07-22 11:24:36.935 +00:00','2020-07-22 11:24:36.935 +00:00','jane');
+4
+```
+* 最小值min
+```js
+    Note.min('id')
+```
+* 结果为1
+```js
+$ node ./model/note.js
+Executing (default): DROP TABLE IF EXISTS `notes`;
+Executing (default): CREATE TABLE IF NOT EXISTS `notes` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `text` VARCHAR
+(255), `name` VARCHAR(255), `createdAt` DATETIME NOT NULL, `updatedAt` DATETIME NOT NULL);
+Executing (default): PRAGMA INDEX_LIST(`notes`)
+The table for the User model was just (re)created!
+Executing (default): SELECT min(`id`) AS `min` FROM `notes` AS `note`;
+Executing (default): INSERT INTO `notes` (`id`,`name`,`createdAt`,`updatedAt`,`text`) VALUES (NULL,'aaa','2020-
+07-22 11:27:39.090 +00:00','2020-07-22 11:27:39.090 +00:00',NULL),(NULL,'你好','2020-07-22 11:27:39.090 +00:00'
+,'2020-07-22 11:27:39.090 +00:00',NULL),(NULL,NULL,'2020-07-22 11:27:39.090 +00:00','2020-07-22 11:27:39.090 +0
+0:00','bomber'),(NULL,NULL,'2020-07-22 11:27:39.090 +00:00','2020-07-22 11:27:39.090 +00:00','jane');
+1
+```
+* 求和sum为1+2+3+4=10
+```js
+$ node ./model/note.js
+Executing (default): DROP TABLE IF EXISTS `notes`;
+Executing (default): CREATE TABLE IF NOT EXISTS `notes` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `text` VARCHAR
+(255), `name` VARCHAR(255), `createdAt` DATETIME NOT NULL, `updatedAt` DATETIME NOT NULL);
+Executing (default): PRAGMA INDEX_LIST(`notes`)
+The table for the User model was just (re)created!
+Executing (default): SELECT sum(`id`) AS `sum` FROM `notes` AS `note`;
+Executing (default): INSERT INTO `notes` (`id`,`name`,`createdAt`,`updatedAt`,`text`) VALUES (NULL,'aaa','2020-
+07-22 11:28:06.031 +00:00','2020-07-22 11:28:06.031 +00:00',NULL),(NULL,'你好','2020-07-22 11:28:06.031 +00:00'
+,'2020-07-22 11:28:06.031 +00:00',NULL),(NULL,NULL,'2020-07-22 11:28:06.031 +00:00','2020-07-22 11:28:06.031 +0
+0:00','bomber'),(NULL,NULL,'2020-07-22 11:28:06.031 +00:00','2020-07-22 11:28:06.031 +00:00','jane');
+10
+```
 ## 其他
 ### 小技巧安装nrm切换源
 * [npr文档](https://www.npmjs.com/package/nrm)
@@ -2980,7 +3283,6 @@ Commands:
    if you're not using custom registry, this command will run npm publish directly
   test [registry]                         Show response time for specific or all registries
   help                                    Print this help
-
 ```
 * 更多用法看[npr文档](https://www.npmjs.com/package/nrm)
 * 以前我做过一个笔记，就是需要发布npm包的时候需要用到真实的npm地址，就需要切换到npm源，前面的[笔记](https://github.com/bomber063/DIY-UI-frame-by-Vue)
