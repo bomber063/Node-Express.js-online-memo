@@ -1940,12 +1940,24 @@ console.log(User === sequelize.models.User); // true
       await User.sync({ force: true });
       console.log("The table for the User model was just (re)created!");//也就是强制删除原来的表，重新创建一个新表
     ```
+* 删除整个表可以用drop，比如
+```js
+User.drop();
+console.log("User table dropped!");
+```
 * 创建表中的条目，Sequelize提供了[create](https://sequelize.org/master/manual/model-instances.html)将上面显示的build和save方法组合为一个方法的方法
 ```js
 const jane = await User.create({ name: "Jane" });
 // Jane exists in the database now!
 console.log(jane instanceof User); // true
 console.log(jane.name); // "Jane"
+```
+* 删除表的某个条目用destroy
+```js
+const jane = await User.create({ name: "Jane" });
+console.log(jane.name); // "Jane"
+await jane.destroy();
+// Now this entry was removed from the database
 ```
 ### 开始使用sequelize
 * sequelize跟mysql区别不大，不过mysql还需要配置用户名和密码。
@@ -3214,6 +3226,120 @@ Executing (default): INSERT INTO `notes` (`id`,`name`,`createdAt`,`updatedAt`,`t
 0:00','bomber'),(NULL,NULL,'2020-07-22 11:28:06.031 +00:00','2020-07-22 11:28:06.031 +00:00','jane');
 10
 ```
+## 继续完善代码
+* 为了安全考了我们把之前的model目录下的note.js的storagge的路径调整为用path
+* 原来的代码
+```js
+const sequelize = new Sequelize({
+    host: 'localhost',//数据库的主机
+    dialect: 'sqlite',//选用的数据库方言
+    storage: 'database/database.sqlite'//数据库的存放路径database.sqlite文件会自动创建
+});
+```
+* 调整为
+```js
+const sequelize = new Sequelize({
+    host: 'localhost',//数据库的主机
+    dialect: 'sqlite',//选用的数据库方言
+    storage: path.join(__dirname,'../database/database.sqlite')//用了path.join和__dirname，当前文件目录，那么就需要用到两个点找到上一层目录对应的数据库的存放路径database目录的database.sqlite文件会自动创建
+});
+```
+* 然后再note.js里面导出这个Note
+```js
+module.exports.Note=Note
+```
+* 然后再routes的api.js的里面使用这个导出的Note
+```js
+var Note=require('../model/note').Note
+
+/* 
+    1. 获取所有的note：GET方法。路径`/api/notes`.
+        * 后台响应一般就是成功或者失败，然后传回对应的参数`res:{status:0，data:[{},{}]}`代表成功，如果是0以外的值，比如1，2，3等就是失败的。只不过失败的原因不同。另一个参数就是数据data，是一个数组，里面有不同的数据，每一个数据就是一个note。如果失败的了参数比如`{status:1,errorMsg:'失败的原因'}`
+        * 所以如果status为0就可以把data获取到。如果status为1，就可以知道失败的原因(errorMsg)。
+*/
+
+/* 前端发的请求都会到这里对应的路由去执行响应的函数 */
+/* 获取所有notes */
+router.get('/notes', function(req, res, next) {
+  Note.findAll({raw:true})
+  .then(function(notes){
+    console.log(notes)
+    res.send({status:0,data:notes})//把后端响应的数据{status:0,data:notes}发送给前端
+  })
+  console.log('/notes');
+});
+```
+* 那么前端每次进入页面主页的时候会通过`目录js/app/index.js`里面触发NoteManager的load函数`NoteManager.load();`，而这个函数会去发送路径`/api/notes`相对应的的请求,然后获取的数据在函数的参数里面，下面的代码也就是后端传的参数`{status:0,data:notes}`在ret里面,然后通过$.each去遍历这个对象里面的data，也就是ret.data。然后把获取到的数据区创建note.代码为
+```js
+  function load() {//页面刚进来需要向服务器发请求去得到所有数据，然后加载所有数据渲染让用户看到,在app.js里面有触发这个load函数
+    $.get('/api/notes')
+      .done(function(ret){
+        if(ret.status == 0){
+            console.log($.each)
+          $.each(ret.data, function(idx, article) {
+            //   $.each()函数和 $(selector).each()是不一样的，那个是专门用来遍历一个jQuery对象。$.each()函数可用于迭代任何集合，无论是“名/值”对象（JavaScript对象）或数组。在迭代数组的情况下，回调函数每次传递一个数组索引和相应的数组值作为参数。（该值也可以通过访问this关键字得到，但是JavaScript将始终将this值作为一个Object ，即使它是一个简单的字符串或数字值。）该方法返回其第一个参数，这是迭代的对象
+            // https://www.jquery123.com/jQuery.each/
+            // 也就是遍历第一个参数ret.data
+            console.log(idx,article)
+              new Note({//后端获取到的数据去创建note
+                id: article.id,
+                context: article.text,
+                username: article.username
+              });
+          });
+
+          Event.fire('waterfall');
+        }else{
+          Toast(ret.errorMsg);
+        }
+      })
+      .fail(function(){
+        Toast('网络异常');
+      });
+  }
+```
+* 其中参数idx和article打出来的数据是
+```js
+0 {id: 1, text: "hello world", createdAt: "2020-07-22 15:55:08.314 +00:00", updatedAt: "2020-07-22 15:55:08.314 +00:00"}
+index.js:612 1 {id: 2, text: "1hello world", createdAt: "2020-07-22 15:56:10.769 +00:00", updatedAt: "2020-07-22 15:56:10.769 +00:00"}
+index.js:612 2 {id: 3, text: "1hello world", createdAt: "2020-07-22 15:56:13.984 +00:00", updatedAt: "2020-07-22 15:56:13.984 +00:00"}
+index.js:612 3 {id: 4, text: "1hello world", createdAt: "2020-07-23 05:52:49.820 +00:00", updatedAt: "2020-07-23 05:52:49.820 +00:00"}
+index.js:612 4 {id: 5, text: "1hello world", createdAt: "2020-07-23 06:02:41.027 +00:00", updatedAt: "2020-07-23 06:02:41.027 +00:00"}
+```
+### get方法请求路径'/api/notes'的数据并相应数据的代码小结
+* 首先后端通过model里面的note.js的代码在**数据库里面存储了数据**。
+* **前端**src目录的js的app的index.js通过`NoteManager.load();`触发load函数,这个函数里面通过`$.get('/api/notes')`,也就是`api/notes`这个路径发一个get请求。
+* **后端**在routes目录的api.js里面针对路径`api/notes`给出了响应`router.get('/notes', function(req, res, next)`
+* **前端**就可以通过下面代码拿到数据就可以创建一个note使用了。
+```js
+  function load() {//页面刚进来需要向服务器发请求去得到所有数据，然后加载所有数据渲染让用户看到,在app.js里面有触发这个load函数
+    $.get('/api/notes')
+      .done(function(ret){
+        if(ret.status == 0){
+            console.log($.each)
+          $.each(ret.data, function(idx, article) {
+            //   $.each()函数和 $(selector).each()是不一样的，那个是专门用来遍历一个jQuery对象。$.each()函数可用于迭代任何集合，无论是“名/值”对象（JavaScript对象）或数组。在迭代数组的情况下，回调函数每次传递一个数组索引和相应的数组值作为参数。（该值也可以通过访问this关键字得到，但是JavaScript将始终将this值作为一个Object ，即使它是一个简单的字符串或数字值。）该方法返回其第一个参数，这是迭代的对象
+            // https://www.jquery123.com/jQuery.each/
+            // 也就是遍历第一个参数ret.data
+            console.log(idx,article)
+              new Note({//后端获取到的数据去创建note
+                id: article.id,
+                context: article.text,
+                username: article.username
+              });
+          });
+
+          Event.fire('waterfall');
+        }else{
+          Toast(ret.errorMsg);
+        }
+      })
+      .fail(function(){
+        Toast('网络异常');
+      });
+  }
+```
+* 以上这就是一个**简单的前后端联调的过程**。
 ## 其他
 ### 小技巧安装nrm切换源
 * [npr文档](https://www.npmjs.com/package/nrm)

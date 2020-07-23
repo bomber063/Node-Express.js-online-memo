@@ -1,5 +1,6 @@
 var express = require('express');
 var router = express.Router();
+var Note=require('../model/note').Note
 
 /* 
     1. 获取所有的note：GET方法。路径`/api/notes`.
@@ -15,6 +16,11 @@ var router = express.Router();
 /* 前端发的请求都会到这里对应的路由去执行响应的函数 */
 /* 获取所有notes */
 router.get('/notes', function(req, res, next) {
+  Note.findAll({raw:true})
+  .then(function(notes){
+    // console.log(notes)
+    res.send({status:0,data:notes})
+  })
   console.log('/notes');
 });
 /* 创建note */
