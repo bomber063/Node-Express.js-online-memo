@@ -21,24 +21,59 @@ router.get('/notes', function(req, res, next) {
     // console.log(notes)
     res.send({status:0,data:notes})
   })
-  console.log('/notes');
+  .catch(function(){
+    res.send({status:1,errorMsg:'数据库出错'})
+  })
+  // console.log('/notes');
 });
 /* 创建note */
 router.post('/notes/add', function(req, res, next) {
   // 对于post请求是req.body,如果是get请求就是req.query
   // http://expressjs.com/en/5x/api.html#req.body
   // http://expressjs.com/en/5x/api.html#req.query
-  var note=req.body.note
-  console.log('add','note',note)
-  console.log(req)
+  Note.create({text:req.body.note})//post请求的的数据是在req.body里面去获取
+  .then(function(notes){
+    res.send({status:0})//因为增加note的前端代码就实现了效果，后端只需要告诉前端增加成功即可。成功就是{status:0}
+  })
+  .catch(function(){
+    res.send({status:1,errorMsg:'数据库出错'})
+  })
+
+  // var note=req.body.note
+  // console.log('add','note',note)
+  // console.log(req)
 });
 /* 修改note */
 router.post('/notes/edit', function(req, res, next) {
-  res.send('respond with a resource');
+  Note.update(//where里面是找到的对应的id，第一个参数{id:req.body.id,text:req.body.note}里面的id和text是修改后的值
+    {text:req.body.note},//只需要修改对应id的text内容就可以了
+    {
+      where:{//找到数据库里面后端发给前端的id，并且前端又传过来的id.
+        id:req.body.id
+      }
+  })
+  .then(function(notes){
+    console.log('arguments',arguments[0])
+    console.log('notes',notes)
+    res.send({status:0});
+  })
+  .catch(function(){
+    res.send({status:1,errorMsg:'数据库出错'})
+  })
 });
 /* 删除note */
 router.post('/notes/delete', function(req, res, next) {
-  res.send('respond with a resource');
+  Note.destroy({//这里的删除destroy要找到哪一个id，要使用where语句
+    where:{
+      id:req.body.id
+    }
+  })
+  .then(function(notes){
+    res.send({status:0});
+  })
+  .catch(function(){
+    res.send({status:1,errorMsg:'数据库出错'})
+  })
 });
 
 module.exports = router;

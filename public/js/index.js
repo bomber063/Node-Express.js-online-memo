@@ -610,8 +610,8 @@ var NoteManager = (function(){
             // jQuery.each( collection, callback(indexInArray, valueOfElement) )
             // https://www.jquery123.com/jQuery.each/
             // 也就是遍历第一个参数ret.data
-            console.log(idx,article)
-              new Note({
+            // console.log(idx,article)
+              new Note({//前端获取到后端的数据后去创建note
                 id: article.id,
                 context: article.text,
                 username: article.username
@@ -1032,6 +1032,7 @@ Note.prototype = {
       .done(function(ret){
         if(ret.status === 0){
           Toast('add success');
+          // window.location.reload()//如果不刷新，那么同样的note上面修改会导致增加事件而不是编辑事件。
         }else{
           self.$note.remove();
           // // remove()从DOM中删除所有匹配的元素。 https://jquery.cuishifeng.cn/remove.html
@@ -1105,7 +1106,7 @@ NoteManager.load();
 
   // console.log(a)
 
-$('.add-note').on('click', function() {//首页点击添加按钮的时候执行add函数
+$('.add-note').on('click', function() {//首页点击添加按钮的时候执行add函数这个add里面的内容是空的
   NoteManager.add();
   // new Note(    {
     // id: 1,   

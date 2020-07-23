@@ -16,8 +16,8 @@ var NoteManager = (function(){
             // jQuery.each( collection, callback(indexInArray, valueOfElement) )
             // https://www.jquery123.com/jQuery.each/
             // 也就是遍历第一个参数ret.data
-            console.log(idx,article)
-              new Note({
+            // console.log(idx,article)
+              new Note({//前端获取到后端的数据后去创建note
                 id: article.id,
                 context: article.text,
                 username: article.username

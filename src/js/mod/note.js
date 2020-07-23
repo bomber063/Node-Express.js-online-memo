@@ -180,6 +180,7 @@ Note.prototype = {
       .done(function(ret){
         if(ret.status === 0){
           Toast('add success');
+          // window.location.reload()//如果不刷新，那么同样的note上面修改会导致增加事件而不是编辑事件。
         }else{
           self.$note.remove();
           // // remove()从DOM中删除所有匹配的元素。 https://jquery.cuishifeng.cn/remove.html

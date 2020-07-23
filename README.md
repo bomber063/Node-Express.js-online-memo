@@ -3226,7 +3226,7 @@ Executing (default): INSERT INTO `notes` (`id`,`name`,`createdAt`,`updatedAt`,`t
 0:00','bomber'),(NULL,NULL,'2020-07-22 11:28:06.031 +00:00','2020-07-22 11:28:06.031 +00:00','jane');
 10
 ```
-## 继续完善代码
+## 继续完善代码（get请求,路径/api/notes）
 * 为了安全考了我们把之前的model目录下的note.js的storagge的路径调整为用path
 * 原来的代码
 ```js
@@ -3322,7 +3322,7 @@ index.js:612 4 {id: 5, text: "1hello world", createdAt: "2020-07-23 06:02:41.027
             // https://www.jquery123.com/jQuery.each/
             // 也就是遍历第一个参数ret.data
             console.log(idx,article)
-              new Note({//后端获取到的数据去创建note
+              new Note({//前端获取到后端的数据后去创建note
                 id: article.id,
                 context: article.text,
                 username: article.username
@@ -3340,6 +3340,90 @@ index.js:612 4 {id: 5, text: "1hello world", createdAt: "2020-07-23 06:02:41.027
   }
 ```
 * 以上这就是一个**简单的前后端联调的过程**。
+## 继续把add,delete,edit代码完善
+* 因为每次进入页面都会发起`$.get('/api/notes')`请求，所以add，delete和edit的时候响应的信息不需要返回note了，只需要返回status即可。
+* 这里可以通过**前端控制台看到对应的路径请求的Form Data有没有正确的数据，如果有正确的数据那就说明前端部分没有问题。**
+* 后端最好在修改内容的时候之前**查询检查一下有没有这个note对应的id，如果都不存在那么直接返回数据库不存在该内容即可。**
+* 代码为
+```js
+router.post('/notes/add', function(req, res, next) {
+  // 对于post请求是req.body,如果是get请求就是req.query
+  // http://expressjs.com/en/5x/api.html#req.body
+  // http://expressjs.com/en/5x/api.html#req.query
+  Note.create({text:req.body.note})//post请求的的数据是在req.body里面去获取
+  .then(function(notes){
+    res.send({status:0})//因为增加note的前端代码就实现了效果，后端只需要告诉前端增加成功即可。成功就是{status:0}
+  })
+  .catch(function(){
+    res.send({status:1,errorMsg:'数据库出错'})
+  })
+});
+/* 修改note */
+router.post('/notes/edit', function(req, res, next) {
+  Note.update(//where里面是找到的对应的id，第一个参数{id:req.body.id,text:req.body.note}里面的id和text是修改后的值
+    {text:req.body.note},//只需要修改对应id的text内容就可以了
+    {
+      where:{//找到数据库里面后端发给前端的id，并且前端又传过来的id.
+        id:req.body.id
+      }
+  })
+  .then(function(notes){
+    res.send({status:0});
+  })
+  .catch(function(){
+    res.send({status:1,errorMsg:'数据库出错'})
+  })
+});
+/* 删除note */
+router.post('/notes/delete', function(req, res, next) {
+  Note.destroy({//这里的删除destroy要找到哪一个id，要使用where语句
+    where:{
+      id:req.body.id
+    }
+  })
+  .then(function(notes){
+    res.send({status:0});
+  })
+  .catch(function(){
+    res.send({status:1,errorMsg:'数据库出错'})
+  })
+});
+```
+### note-manager.js引用奇怪的问题
+* delete和edit需要知道删除哪一个，所以需要前端传入一个参数id，add和edit需要前端传入一个参数就是增加或者编辑的内容。
+* note-manager.js是一个立即执行函数并且返回一个对象，但是导出是用
+```js
+module.exports.NoteManager = NoteManager
+```
+* 它在app目录的index.js里面引用没问题
+```js
+var NoteManager = require('mod/note-manager.js').NoteManager;
+```
+* 但是在note.js里面同样引入就找不到这个模块
+* 比如要这样引入，也就是不要用到后的调用
+```js
+var NoteManager = require('mod/note-manager.js');
+```
+* 先记录一下，**不知道是不是因为index.js是入口文件所以可以这么引入，还是说NoteManager.js本身是一个立即执行函数，所以不能这么引入在非入口文件呢？**
+### 在便签中输入空格会转义
+* 不知道是不是note.js文件里面的html()的原因，后续把它修改为text()在测试一下
+* [Jquery中html()、text()、val()的使用和区别](https://www.cnblogs.com/dbj66/p/8465958.html)
+### 不刷新触发add之后同样的便签修改不会触发edit
+* 不刷新触发add之后同样的便签修改不会触发edit,还是会触发add，要刷新之后才会在后台保存并有id，这时候才会触发edit。这个bug我不知道怎么修改。我是考了使用一个刷新API，但是刷新后会导致add的toast弹出不能被看到。         
+```js 
+window.location.reload()//如果不刷新，那么同样的note上面修改会导致增加事件而不是编辑事件。
+```
+### update，create，destroy和findAll返回什么
+* [update](https://sequelize.org/master/class/lib/model.js~Model.html#static-method-update)，返回一个包含一个或两个元素的数组。第一个元素始终是受影响的行数，而第二个元素是实际受影响的行（仅在options.returningtrue的postgres中支持）。
+* [create](https://sequelize.org/master/class/lib/model.js~Model.html#static-method-create)，返回的是model对象
+* [destroy](https://sequelize.org/master/class/lib/model.js~Model.html#static-method-destroy)，返回的是被删除的行数。
+* [findAll](https://sequelize.org/master/class/lib/model.js~Model.html#static-method-findAll),返回的是model对象
+## 下一步要实现登陆注册
+* 涉及到session和cookie
+* 登陆有两种：
+  * 一种是自带的登陆注册，跳转到一个页面（加一个路由和一个模板就可以实现一个页面）去给用户输入信息（比如邮箱用户名和密码，等等），然后再数据库里面保存。当然密码不是存储明文的密码，而是加密后的密码。经过md5或者是sha1。[SHA 加密是什么（ sha1 和 MD5 的区别 ）](https://blog.csdn.net/ahaotata/article/details/84934903)。忘记数据库被盗取也看不到真实的密码是什么。当用户再次用用户名和面登陆的时候，需要一个后端的接口，就是在数据库里面去查询是否匹配，如果匹配就登陆成功，反之亦然。数据库里面拿密码也是经过一次加密（md5或者sha1）,不匹配可以提示用户名不存在或者密码错误等。如果连续输错五次可以给用户在几个小时之后才能输入（这个操作比较复杂，暂时没有实现），用户登录了就可以设置session，把用户逇信息放到req.session上面。当用户打开首页的时候对这个session是否存在进行判断，如果有那么session里面就有用户的信息，那么islogin就是true，然后后端可以把用户信息传回给前端，前端打开页面的时候就可以看到自己的头像了。如果没有登陆的那么看到的就是登陆的按钮。
+  * 另一个是第三方的登陆没使用的是auth2的协议，协议内容比较负载，但是用法比较简单。甚至都可以不需要数据库这个表。可以参考[理解OAuth 2.0](http://www.ruanyifeng.com/blog/2014/05/oauth_2_0.html)
+
 ## 其他
 ### 小技巧安装nrm切换源
 * [npr文档](https://www.npmjs.com/package/nrm)

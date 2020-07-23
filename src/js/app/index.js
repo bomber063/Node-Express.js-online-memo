@@ -19,7 +19,7 @@ NoteManager.load();
 
   // console.log(a)
 
-$('.add-note').on('click', function() {//首页点击添加按钮的时候执行add函数
+$('.add-note').on('click', function() {//首页点击添加按钮的时候执行add函数这个add里面的内容是空的
   NoteManager.add();
   // new Note(    {
     // id: 1,   
