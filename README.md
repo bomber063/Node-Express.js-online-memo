@@ -3423,7 +3423,229 @@ window.location.reload()//如果不刷新，那么同样的note上面修改会�
 * 登陆有两种：
   * 一种是自带的登陆注册，跳转到一个页面（加一个路由和一个模板就可以实现一个页面）去给用户输入信息（比如邮箱用户名和密码，等等），然后再数据库里面保存。当然密码不是存储明文的密码，而是加密后的密码。经过md5或者是sha1。[SHA 加密是什么（ sha1 和 MD5 的区别 ）](https://blog.csdn.net/ahaotata/article/details/84934903)。忘记数据库被盗取也看不到真实的密码是什么。当用户再次用用户名和面登陆的时候，需要一个后端的接口，就是在数据库里面去查询是否匹配，如果匹配就登陆成功，反之亦然。数据库里面拿密码也是经过一次加密（md5或者sha1）,不匹配可以提示用户名不存在或者密码错误等。如果连续输错五次可以给用户在几个小时之后才能输入（这个操作比较复杂，暂时没有实现），用户登录了就可以设置session，把用户逇信息放到req.session上面。当用户打开首页的时候对这个session是否存在进行判断，如果有那么session里面就有用户的信息，那么islogin就是true，然后后端可以把用户信息传回给前端，前端打开页面的时候就可以看到自己的头像了。如果没有登陆的那么看到的就是登陆的按钮。
   * 另一个是第三方的登陆没使用的是auth2的协议，协议内容比较负载，但是用法比较简单。甚至都可以不需要数据库这个表。可以参考[理解OAuth 2.0](http://www.ruanyifeng.com/blog/2014/05/oauth_2_0.html)
+* 目前我们的便利贴 任何人都可以去修改，创建和删除。这样不够合理，可以添加一些权限，比如管理员可以所有操作，而普通用户只能操作自己创建的便利贴。
+* 我这里使用第三方登陆，也就是auth2这个协议。
+* 点击github登陆会跳转到github的登陆页面，然后输入github的账号和密码登陆，然后调回到我们的便利贴网站显示登陆成功后的页面。实际上这就是auth2这个协议支撑的效果。前提是需要便利贴网站在github注册并获得一个key.github网站并不保存便利贴网站的数据。数据是不相通的，如果想通那么任何网站就可以互相获取账号和密码。
+### 便利贴网站用github登陆的大致auth2流程
+* 便利贴网站用github登陆的大致auth2流程
+  * 点击便利贴网站的github登录首先是进入的当前网站（便利贴网站的后台告诉后台我要登录了），也就是便利贴网站的前端向后端发送一个请求
+  * 便利贴网站的后台会向github服务的接口去请求，意思是有用户要登陆了，然后给一些便利贴网站的信息给github(因为便利贴网站在github注册后会有一个clientID和clientSecret参数，这个信息就是这些)，给这个用户返回一个页面（**这个页面是github本身的登陆页面，不是便利贴网站的登陆页面，这里的用户名和密码是github的，便利贴网站是看不到的**）
+  * 如果github登陆验证成功就**调用回调callback的接口**，便利贴网站有一个可以接收回调接口的地址。给便利贴网站发送一些信息（这些信息包括登陆用户的相关信息），便利贴网站获取到这些相关信息后就认为该用户已经登陆了，然后便利贴网站的后台自己对应的做一些网页的操作。
+* 这个流程的方便之处就是
+  * 我们可以在github的后台设置很多引用。每一个引用都有一个单独的权限，**每一个应用都对应了一个key**，如果**其中一个clientID和clientSecret参数泄露了，但是不影响其他的clientID和clientSecret参数，因为每个应用的clientID和clientSecret参数都是不相同的**。
+### 实现auth2协议的登陆
+#### passport和express-session设置和代码
+* 首先要安装[passport](https://www.npmjs.com/package/passport)和[passport-github](https://www.npmjs.com/package/passport-github)和[express-session](https://www.npmjs.com/package/express-session)
+```
+npm install passport passport-github express-session
+```
+* 然后创建auth路由和 auth.js文件
+```js
+var api = require('./routes/api');
+...
+app.use('/auth',auth)//所有的认证这个路由进入，不管是 github，微博，QQ等第三方登陆
+```
+* 使用passport和express-session的时候官网推荐我们要按照官网代码写,要在基于Express或 Connect的应用程序中使用Passport，请使用所需的passport.initialize()中间件对其进行配置。如果您的应用程序使用持久登录会话（推荐但不是必需的），则passport.session() 还必须使用中间件。
+```js
+var cookieParser = require('cookie-parser');
+var bodyParser = require('body-parser');
+var passport = require('passport');
+var session = require('express-session');
+...
+// https://www.npmjs.com/package/express-session
+app.use(session({secret: 'sessionsecret'}));
+...
+// https://www.npmjs.com/package/passport
+app.use(passport.initialize());
+app.use(passport.session());
+```
+* 然后还需要设置session.
+  * Passport要保持sessions持久登陆，需要验证用户的序列化session和后续反序列化请求的设置。
+```js
+passport.serializeUser(function(user, done) {//官网的序列化代码，意思就是用户登录的信息传递到passport之后，让它去生成一个session储存在内存里面。我们也可以设置存储到数据库里面
+    // done(null, user.id);//以用户的id作为session的id并储存。
+    console.log('---serializeUser---')
+    console.log(user)
+    done(null, user.id);
+  });
+...
+passport.deserializeUser(function(id, done) {//官网的反序列化代码，用户刷新页面的时候，会从内存里面把对应的session拿出来解析后，就知道是某个用户。
+    // User.findById(id, function (err, user) {//User是一个数据库，当用户刷新页面的时候去数据库里面通过id得到用户的信息，然后把它重新拿出来。
+    //     console.log('---serializeUser---')
+    //     console.log(user)
+    //     done(null, user.id);
+    // //   done(err, user);
+    // });
+    console.log('---deserializeUser---')//如果登陆后再次刷新页面还是可以得到这个id，这个是从服务端把session发送给用户，用户储存到cookie里面，并且浏览器以sessionId的形式存储到浏览器的cookie里面获取到的。再次请求的时候会带上这个存在cookie里面的sessionID，如果与服务器内存（也可以存到数据库里面）里面的cookie匹配那么就知道你是已经登陆的用户了，然后就可以展示该用户的相关信息，比如用户名及头像等
+    console.log('id',id)
+    done(null, id);
+  });
+```
+#### passport-github设置和代码
+* [第三方登陆auth(github)](https://blog.csdn.net/weixin_41545048/article/details/102978945)
+* 设置了中间件后，使用passport-github设置应用程序，首选需要在github上创建账号，然后再Settings->Developer settings->OAuth Apps里面New OAuth APP创建一个新的应用
+  * 注意：这里的Homepage URL是你的Homepage页面
+Authorization callback URL是获得授权后的跳转页面
+  * 我设置的Homepage URL
+    ```js
+      http://127.0.0.1:8080/
+    ```
+  * 设置的Authorization callback URL是
+    ```js
+      http://127.0.0.1:8080/auth/github/callback
+    ```
+  * 然后你还可以看到Client ID和Client Secret
+* 根据[passport-github](https://www.npmjs.com/package/passport-github)官网需要在auth.js里面创建如下代码,首先是配置策略
+```js
+var GitHubStrategy = require('passport-github').Strategy;//在passport基础上进行封装，有具体的的URL和跳转，不同的应用里面的URL，写法和规则不同
+// https://www.npmjs.com/package/passport-github
 
+passport.use(new GitHubStrategy({
+    clientID: '输入自己的clientID',
+    clientSecret: '输入自己的clientSecret',
+    callbackURL: "http://127.0.0.1:8080/auth/github/callback"//向github的登陆入口去发送请求，然后把前面的clientID和clientSecret传递过去，那么github就知道是哪个应用发的请求。github就会向请求方传送一个密钥，会调用这个callback回来
+  },
+  function(accessToken, refreshToken, profile, done) {
+    // User.findOrCreate({ githubId: profile.id }, function (err, user) {
+    // });
+    done(null, profile);
+  }
+));
+```
+* 然后设置验证请求和回调函数
+```js
+router.get('/github',
+  passport.authenticate('github'));//这是登陆的入口，当点击auth/github的时候就会去调用passport.authenticate('github')，然后去认证这个github，这个过程是用户点击的
+
+router.get('/github/callback',//当有回调函数回来之后，就会真正的得到这些用户信息，这个过程是github账号体系自己返回的的它发的这个请求。这个路由是回调地址，也就是便利贴网站需要接收的请求的地址。
+  passport.authenticate('github', { failureRedirect: '/login' }),//失败的话会进入到登陆的路由
+  function(req, res) {//成功会进入到这里，这是github服务器想便利贴后台发送的这些数据，存在req.user里面
+    console.log('sucess....')
+    console.log(req.user)
+    req.session.user = {//成功后就给响应的session里面的user增加id,username,avatar,provider
+      id: req.user.id,//这里的req.user的信息在前面的console.log(user)里面可以看到，用户id
+      username: req.user.displayName || req.user.username,//用户名字
+      avatar: req.user._json.avatar_url,//用户头像
+      provider: req.user.provider//信息的提供方
+    };
+    res.redirect('/');
+  });
+```
+* 上面的`req.session.user`中的`req.session`是来自于[express-session](https://www.npmjs.com/package/express-session)依赖。也就是要存储或访问session data，只需使用request属性req.session，该属性通常由储存的序列化为JSON，因此嵌套对象通常很好。
+* 上面的`res.redirect`来自于express框架的[res.redirect](http://expressjs.com/en/5x/api.html#res.redirect)，也就是重定向路由。
+* 根据[express-session](https://www.npmjs.com/package/express-session)依赖需要加入下面代码,首先创建中间件
+```js
+var session = require('express-session');
+...
+// https://www.npmjs.com/package/express-session
+app.use(session({secret: 'sessionsecret'}));
+```
+#### node.js展示获取到的部分打印信息
+* github会传递一些信息过来，我这里就展示一部分
+```js
+---serializeUser---
+{ id: '44310426',
+  displayName: 'bomber hong',
+  username: 'bomber063',
+  profileUrl: 'https://github.com/bomber063',
+  photos:
+   [ { value: 'https://avatars1.githubusercontent.com/u/44310426?v=4' } ],
+  provider: 'github',
+```
+* 认证通过后会显示req.user的信息如下
+```js
+sucess....
+{ id: '44310426',
+  displayName: 'bomber hong',
+  username: 'bomber063',
+  profileUrl: 'https://github.com/bomber063',
+  photos:
+   [ { value: 'https://avatars1.githubusercontent.com/u/44310426?v=4' } ],
+  provider: 'github',
+```
+* **最新的反序列化里面的不是对象obj，而是一个id，老师的老版本里面显示的是一个对象。**
+```js
+passport.deserializeUser(function(id, done) {
+  User.findById(id, function (err, user) {
+    done(err, user);
+  });
+});
+```
+#### 设置模板和主页代码
+* index.js主页代码修改为
+```js
+var express = require('express');//引入express，从node_modules里面
+var router = express.Router();//用express的Router函数
+
+/* GET home page. */
+router.get('/', function(req, res, next) {//req是请求，res是响应，next是下一个执行的函
+
+var data;//如果存在req.session.user就代表登陆，然后把数据放到data里面传给模板index.ejs
+if(req.session.user){
+  data = {
+    isLogin: true,
+    user: req.session.user
+  }
+}else{//不存在就说明未登录，不传用户参数
+  data = {
+    isLogin: false
+  }
+}
+
+  res.render('index', data);
+});
+
+module.exports = router;
+```
+* 主页模板index.ejs修改为
+```html
+    <div id="header">
+      <a class="add-note" title="添加笔记" href="#"><span class="fa fa-plus"></span> 添加</a>
+      <ul class="user-area">
+       <% if (isLogin){ %>
+          <li><img src="<%= user.avatar %>" alt=""></li>
+          <li><span title="<%= user.username %>"><%= user.username %></span></li>
+          <li><span class="line"> | </span> </li>
+          <li><a class="logout" href="/auth/logout">注销</a></li>
+        <%} else { %>
+          <li><a class="login" title="GitHub登录" href="/auth/github"> GitHub登录</a>
+          </li>
+        <% } %>
+      </ul>
+```
+#### 设置注销路径
+* 在auth.js里面设置注销路径，对应使用express-session依赖的[req.session.destroy](https://www.npmjs.com/package/express-session),销毁session并取消设置req.session属性
+* 然后对应使用express框架的重定向[res.redirect](http://expressjs.com/en/5x/api.html#res.redirect),重定向可以是用于重定向到其他站点的标准URL
+```js
+router.get('/logout', function(req, res){
+  req.session.destroy();
+//   express-session依赖的[req.session.destroy](https://www.npmjs.com/package/express-session),销毁session并取消设置req.session属性
+  res.redirect('/');
+//   express框架的重定向[res.redirect](http://expressjs.com/en/5x/api.html#res.redirect),重定向可以是用于重定向到其他站点的标准URL
+})
+```
+#### 通过前端控制台查看路径
+* 我们点击登录后会在控制台进入的路径依次是
+```js
+// 这个路径是我们自己设置的
+http://127.0.0.1:8080/auth/github
+
+//这个路径是便利贴后发给GitHub服务器后的验证登录的路径
+https://github.com/login/oauth/authorize?response_type=code&redirect_uri=http%3A%2F%2F127.0.0.1%3A8080%2Fauth%2Fgithub%2Fcallback&client_id=e89343001d0334689ed3
+
+// 验证成功后返回的callback路径
+http://127.0.0.1:8080/auth/github/callback?code=d73ac0ca67b7d171b435
+```
+* 然后点击注销后跳转的路径是
+```js
+// 这是自己的设置的注销路径
+http://127.0.0.1:8080/auth/logout
+
+//马上会重定向到下面的主页面，因为前面设置了res.redirect('/')
+http://127.0.0.1:8080/
+```
+#### cookie和session的补充
+* 明天再写
 ## 其他
 ### 小技巧安装nrm切换源
 * [npr文档](https://www.npmjs.com/package/nrm)
