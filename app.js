@@ -35,7 +35,12 @@ app.use(express.static(path.join(__dirname, 'public')));
 // 就是假设请求的是public目录的文件，就不用走路由可以直接拿到这个文件里面的信息。
 
 // https://www.npmjs.com/package/express-session
-app.use(session({secret: 'sessionsecret'}));
+app.use(session({
+  secret: 'sessionsecret'
+  // resave:false,
+  // savaUninitialized:true,
+  // cookie:{secure:true}
+}));
 
 
 // https://www.npmjs.com/package/passport

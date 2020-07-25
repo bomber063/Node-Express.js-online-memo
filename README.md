@@ -3461,6 +3461,7 @@ app.use(passport.session());
 ```
 * 然后还需要设置session.
   * Passport要保持sessions持久登陆，需要验证用户的序列化session和后续反序列化请求的设置。
+  * passport.serializeUser是去生成一个session储存在内存里面，passport.deserializeUser是刷新后反序列化从内存中拿到这个session解析知道是某个用户。
 ```js
 passport.serializeUser(function(user, done) {//官网的序列化代码，意思就是用户登录的信息传递到passport之后，让它去生成一个session储存在内存里面。我们也可以设置存储到数据库里面
     // done(null, user.id);//以用户的id作为session的id并储存。
@@ -3644,8 +3645,27 @@ http://127.0.0.1:8080/auth/logout
 //马上会重定向到下面的主页面，因为前面设置了res.redirect('/')
 http://127.0.0.1:8080/
 ```
+#### req.logout()和req.session.destroy()
+* 根据[文档](http://www.passportjs.org/docs/logout/)可以知道Invoking logout() 将会移除req.user属性还会清空登陆的session(如果有)，**但是经过测试这里的req.session还是存在,具体不知道为什么**所以还增加了[req.session.destroy()](https://www.npmjs.com/package/express-session)
+```js
+router.get('/logout', function(req, res){
+  // console.log('logout前的req',req.user)
+  // console.log('logout前的req.session',req.session)
+  req.logout();
+  req.session.destroy()
+  //这里如果只是设置的req.logout()，虽然可以清除req的信息，但是这里很奇怪还存在req.session，所以还需要清除req.session，所以req.logout()和req.session.destroy()一起使用。
+  // 因为第一次登陆页面后台会发送一个set-cookie的响应头给前端设置cookie，以后前端每次发请求都会带上这个cookie。但是这里如果使用req.session.destroy()清除了session，那么客户端的cookie中就没有sessionId，后端会再次set-cookie给前端，前端再次把这个后端的cookie放到客户端的cookie里面保存。
+  // console.log('logout后的req',req.user)
+  // console.log('logout后的req.session',req.session)
+//   express-session依赖的[req.session.destroy](https://www.npmjs.com/package/express-session),销毁session并取消设置req.session属性
+  res.redirect('/');
+//   express框架的重定向[res.redirect](http://expressjs.com/en/5x/api.html#res.redirect),重定向可以是用于重定向到其他站点的标准URL
+})
+```
 #### cookie和session的补充
-* 明天再写
+* 这里如果只是设置的req.logout()，虽然可以清除req的信息，但是这里很奇怪还存在req.session，所以还需要清除req.session，所以req.logout()和req.session.destroy()一起使用。
+* 因为第一次登陆页面后台会发送一个set-cookie的响应头给前端设置cookie，前端会以sessionId的形式存在浏览器的cookie里面。以后前端每次发请求都会带上这个cookie。但是这里如果使用req.session.destroy()清除了session，那么客户端的cookie中就没有sessionId，后端会再次set-cookie给前端，前端再次把这个后端的cookie放到客户端的cookie里面保存。
+* **内存中的cookie中的sessionId和req.session好像有点不同**
 ## 其他
 ### 小技巧安装nrm切换源
 * [npr文档](https://www.npmjs.com/package/nrm)

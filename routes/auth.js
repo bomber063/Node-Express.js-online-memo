@@ -17,7 +17,7 @@ passport.serializeUser(function(user, done) {//官网的序列化代码，意思
     // done(null, user.id);//以用户的id作为session的id并储存。
     console.log('---serializeUser---')
     console.log(user)
-    done(null, user.id);
+    done(null, user.id);//这里只需要序列化user.id即可，然后再反序列化deserializeUser里面对应的参数就是这个id，当然可以序列化整个user
   });
 
 
@@ -38,18 +38,30 @@ passport.deserializeUser(function(id, done) {//官网的反序列化代码，用
 passport.use(new GitHubStrategy({
     clientID: 'e89343001d0334689ed3',
     clientSecret: 'b51bac623a02bfa32d9a3a6a6938535af0e18f9f',
-    callbackURL: "http://127.0.0.1:8080/auth/github/callback"//向github的登陆入口去发送请求，然后把前面的clientID和clientSecret传递过去，那么github就知道是哪个应用发的请求。github就会向请求方传送一个密钥，会调用这个callback回来
+    callbackURL: "http://127.0.0.1:8080/auth/github/callback",//向github的登陆入口去发送请求，然后把前面的clientID和clientSecret传递过去，那么github就知道是哪个应用发的请求。github就会向请求方传送一个密钥，会调用这个callback回来
+    proxy:true
   },
   function(accessToken, refreshToken, profile, done) {
     // User.findOrCreate({ githubId: profile.id }, function (err, user) {
     // });
+    console.log('---passport.use(new GitHubStrategy---')
+    console.log(profile)
     done(null, profile);
   }
 ));
 
 
 router.get('/logout', function(req, res){
-  req.session.destroy();
+  console.log('logout前的req',req.user)
+  console.log('logout前的req.session',req.session)
+  req.logout();
+  req.session.destroy()
+  //这里如果只是设置的req.logout()，虽然可以清除req的信息，但是这里很奇怪还存在req.session，所以还需要清除req.session，所以req.logout()和req.session.destroy()一起使用。
+  // 因为第一次登陆页面后台会发送一个set-cookie的响应头给前端设置cookie，以后前端每次发请求都会带上这个cookie。但是这里如果使用req.session.destroy()清除了session，那么客户端的cookie中就没有sessionId，后端会再次set-cookie给前端，前端再次把这个后端的cookie放到客户端的cookie里面保存。
+  console.log('logout后的req',req.user)
+  console.log('logout后的req.session',req.session)
+
+
 //   express-session依赖的[req.session.destroy](https://www.npmjs.com/package/express-session),销毁session并取消设置req.session属性
   res.redirect('/');
 //   express框架的重定向[res.redirect](http://expressjs.com/en/5x/api.html#res.redirect),重定向可以是用于重定向到其他站点的标准URL
