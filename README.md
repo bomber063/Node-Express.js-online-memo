@@ -3666,6 +3666,47 @@ router.get('/logout', function(req, res){
 * 这里如果只是设置的req.logout()，虽然可以清除req的信息，但是这里很奇怪还存在req.session，所以还需要清除req.session，所以req.logout()和req.session.destroy()一起使用。
 * 因为第一次登陆页面后台会发送一个set-cookie的响应头给前端设置cookie，前端会以sessionId的形式存在浏览器的cookie里面。以后前端每次发请求都会带上这个cookie。但是这里如果使用req.session.destroy()清除了session，那么客户端的cookie中就没有sessionId，后端会再次set-cookie给前端，前端再次把这个后端的cookie放到客户端的cookie里面保存。
 * **内存中的cookie中的sessionId和req.session好像有点不同**
+#### 有时候点击登录授权的时候会弹出错误
+* **不知道是不是本地测试的原因，还是网络原因，毕竟我的电脑有时候连网页和视频都打不开**
+* 报错的网址是回调callback的网址加上code这个授权码
+```
+http://127.0.0.1:8080/auth/github/callback?code=cb120aa28b9ff1d2afe2
+```
+* 报错信息
+```js
+Failed to obtain access token
+InternalOAuthError: Failed to obtain access token
+    at Strategy.OAuth2Strategy._createOAuthError (D:\jirengu\github收集\Node-Express-online-memo\node_modules\passport-oauth2\lib\strategy.js:408:17)
+    at D:\jirengu\github收集\Node-Express-online-memo\node_modules\passport-oauth2\lib\strategy.js:175:45
+    at D:\jirengu\github收集\Node-Express-online-memo\node_modules\passport-github\lib\strategy.js:75:25
+    at D:\jirengu\github收集\Node-Express-online-memo\node_modules\oauth\lib\oauth2.js:191:18
+    at ClientRequest.<anonymous> (D:\jirengu\github收集\Node-Express-online-memo\node_modules\oauth\lib\oauth2.js:162:5)
+    at ClientRequest.emit (events.js:182:13)
+    at TLSSocket.socketErrorListener (_http_client.js:391:9)
+    at TLSSocket.emit (events.js:182:13)
+    at emitErrorNT (internal/streams/destroy.js:82:8)
+    at emitErrorAndCloseNT (internal/streams/destroy.js:50:3)
+```
+* 有时候报错是这样的
+```js
+Failed to fetch user profile
+InternalOAuthError: Failed to fetch user profile
+    at D:\jirengu\github收集\Node-Express-online-memo\node_modules\passport-github\lib\strategy.js:122:19
+    at ClientRequest.<anonymous> (D:\jirengu\github收集\Node-Express-online-memo\node_modules\oauth\lib\oauth2.js:162:5)
+    at ClientRequest.emit (events.js:182:13)
+    at TLSSocket.socketErrorListener (_http_client.js:391:9)
+    at TLSSocket.emit (events.js:182:13)
+    at emitErrorNT (internal/streams/destroy.js:82:8)
+    at emitErrorAndCloseNT (internal/streams/destroy.js:50:3)
+    at process._tickCallback (internal/process/next_tick.js:63:19)
+```
+* **但是只需要重启服务器基本上就可以正常了**
+* 正常情况应该是
+用户同意授权， GitHub 就会跳转到callback URL指定的跳转网址，并且带上授权码(code)，跳转回来的 URL 就是下面的样子。
+```js
+http://127.0.0.1:8080/auth/github/callback?code=cb120aa28b9ff1d2afe2
+```
+* 后端收到这个请求以后，就拿到了授权码（code参数）
 ## 其他
 ### 小技巧安装nrm切换源
 * [npr文档](https://www.npmjs.com/package/nrm)
