@@ -3917,12 +3917,12 @@ router.get('/notes', function(req, res, next) {
 ```
 * 小结
   * 点击增加按钮的时候没有后端路径触发,然后**前端增加一个note便利签不带名字**。
-  * 失去焦点的时候就触发路径`/notes/add`。然后对应的后端路径会Note.create增加一个便利签在数据库里面。
-  * 刷新后，触发路径`/notes`获取所有note然后给前端对应的路径，然后就创建数据库里面的所有note，包括刚刚创建的，这里的note是包括用户名的，所以刷新后才会显示名字。
+  * 失去焦点的时候就触发路径`/notes/add`。然后对应的**后端路径会Note.create增加一个便利签在数据库里面。**
+  * **刷新后，触发路径`/notes`获取所有note然后给前端对应的路径，然后就创建数据库里面的所有note，包括刚刚创建的，这里的note是包括用户名的，所以刷新后才会显示名字。**
 ### 点击add的时候会显示名字，刷新后还会显示名字
 * 就是在这之前新建一个note是不会显示名字的，需要刷新后才能显示名字。我通过增加一个路由`addfirst`路由.
-* 并且这里还用到了new Promise成功后把resolve的值传给下一个then的第一个函数的参数的办法。具体见[Promise](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Promise),因为前端发了请求后后端需要告诉这个请求的用户名字是哪个，这个值可以直接通过`req.session.user.username`获取，所以就把这个值传过去给前端用即可。这只是为了前端显示效果，**因为刷新后的路径/notes会获取到数据库里面的信息，然后创建note**
-* 通过**这个addfirst路由不创建任何数据，就不影响数据库内容**,把所有创建数据的都放到了路由`/notes`。但是在`notes/add`路由**单独创建一个notes**
+* 并且这里还用到了new Promise成功后把resolve的值传给下一个then的第一个函数的参数的办法。具体见[Promise](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Promise),因为前端发了请求后，后端需要告诉这个请求的用户名字是哪个，这个值可以直接通过`req.session.user.username`获取，所以就把这个值传过去给前端用即可。这只是为了前端显示效果，**因为刷新后的路径/notes会获取到数据库里面的信息，然后创建note**
+* 通过**这个addfirst路由不创建任何数据，就不影响数据库内容**,把**所有获取后端数据库内容和前端部分创建所有note**的都放到了路由`/notes`。但是在`notes/add`路由**单独在数据库里面创建一个notes**
 ```js
 router.post('/notes/addfirst', function(req, res, next) {
   if(!req.session.user){
@@ -3939,7 +3939,24 @@ router.post('/notes/addfirst', function(req, res, next) {
   })
 });
 ```
-* 后续还可以增加创建事件和头像。
+* 前端在note-manager.js文件里面的add函数里面获取到后端提供的用户名字创建一个便利贴`new note()`，**这里面带用户名这个参数**。
+```js
+  function add(){
+    $.post('/api/notes/addfirst')
+    .done(function(ret){//这里的ret就是后端传给前端的数据
+      if(ret.status === 0){
+        console.log(ret)
+        // NoteManager.add(ret)
+        new Note({//前端获取到后端的用户名后去创建note
+          username:ret.data
+      });
+        Toast('please input content "in input here"');//创建之前提醒用户输入内容
+      }else{
+        Toast(ret.errorMsg);
+      }
+    });
+```
+* 后续还可以增加创建时间和头像。
 * 小结
   * 点击增加按钮的时候触发路径`/notes/addfirst`,仅仅查找并不是创建用户名并且通过promise返回给前端使用。,然后**前端增加一个note便利签带名字**。并弹出please input content "in input here"
   * 失去焦点的时候就触发路径`/notes/add`。然后对应的**后端路径会Note.create增加一个便利签在数据库里面。**
