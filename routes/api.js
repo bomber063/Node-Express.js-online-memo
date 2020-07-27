@@ -18,7 +18,7 @@ var Note=require('../model/note').Note
 router.get('/notes', function(req, res, next) {
   Note.findAll({raw:true})
   .then(function(notes){
-    // console.log(notes)
+    console.log(notes)
     res.send({status:0,data:notes})
   })
   .catch(function(){
@@ -31,9 +31,14 @@ router.post('/notes/add', function(req, res, next) {
   // 对于post请求是req.body,如果是get请求就是req.query
   // http://expressjs.com/en/5x/api.html#req.body
   // http://expressjs.com/en/5x/api.html#req.query
-  Note.create({text:req.body.note})//post请求的的数据是在req.body里面去获取
+  if(!req.session.user){
+    return res.send({status:1,errorMsg:'请先登录'})
+  }
+  Note.create({text:req.body.note,username:req.session.user.username,uid:req.session.user.id})//post请求的的数据是在req.body里面去获取
+  //增加这个Note是谁创建的归属uid,另外可以把用户的头像和名字还有创建事件都可以写进去，但是不建议，正常的表和表之间通过一个key去做关联，除了Note这个数据表以外，还可以创建一个user表，这个user表只记录当前用户的信息，比如uid为1的用户，的中文姓名，头像，邮箱，手机号，密码的加密后的信息等，然后两个表之间通过uid做一个关联即可。
+  Note.findAll({raw:true})
   .then(function(notes){
-    res.send({status:0})//因为增加note的前端代码就实现了效果，后端只需要告诉前端增加成功即可。成功就是{status:0}
+    res.send({status:0,data:notes})//因为增加note的前端代码就实现了效果，后端只需要告诉前端增加成功即可。成功就是{status:0}
   })
   .catch(function(){
     res.send({status:1,errorMsg:'数据库出错'})
@@ -43,8 +48,35 @@ router.post('/notes/add', function(req, res, next) {
   // console.log('add','note',note)
   // console.log(req)
 });
+
+router.post('/notes/addfirst', function(req, res, next) {
+  // 对于post请求是req.body,如果是get请求就是req.query
+  // http://expressjs.com/en/5x/api.html#req.body
+  // http://expressjs.com/en/5x/api.html#req.query
+  if(!req.session.user){
+    return res.send({status:1,errorMsg:'请先登录'})
+  }
+
+  new Promise((resolve,reject)=>resolve(req.session.user.username))
+  .then(function(username){
+    console.log(username)
+    res.send({status:0,data:username})//因为增加note的前端代码就实现了效果，后端只需要告诉前端增加成功即可。成功就是{status:0}
+  })
+  .catch(function(){
+    res.send({status:1,errorMsg:'数据库出错'})
+  })
+
+  // var note=req.body.note
+  // console.log('add','note',note)
+  // console.log(req)
+});
+
+
 /* 修改note */
 router.post('/notes/edit', function(req, res, next) {
+  if(!req.session.user){
+    return res.send({status:1,errorMsg:'请先登录'})
+  }
   Note.update(//where里面是找到的对应的id，第一个参数{id:req.body.id,text:req.body.note}里面的id和text是修改后的值
     {text:req.body.note},//只需要修改对应id的text内容就可以了
     {
@@ -63,6 +95,9 @@ router.post('/notes/edit', function(req, res, next) {
 });
 /* 删除note */
 router.post('/notes/delete', function(req, res, next) {
+  if(!req.session.user){
+    return res.send({status:1,errorMsg:'请先登录'})
+  }
   Note.destroy({//这里的删除destroy要找到哪一个id，要使用where语句
     where:{
       id:req.body.id

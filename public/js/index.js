@@ -517,6 +517,78 @@ module.exports = function (list, options) {
 /* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
+/* WEBPACK VAR INJECTION */(function($) {var Toast = __webpack_require__(5).Toast;
+var Note = __webpack_require__(15).Note;
+// var Toast = require('./toast.js').Toast;
+var Event = __webpack_require__(1);
+console.log(Note,'Note')
+
+
+var NoteManager = (function(){
+
+  function load() {//页面刚进来需要向服务器发请求去得到所有数据，然后加载所有数据渲染让用户看到,在app.js里面有触发这个load函数
+    $.get('/api/notes')
+      .done(function(ret){
+        if(ret.status == 0){
+            // console.log($.each)
+          $.each(ret.data, function(idx, article) {
+            //   $.each()函数和 $(selector).each()是不一样的，那个是专门用来遍历一个jQuery对象。$.each()函数可用于迭代任何集合，无论是“名/值”对象（JavaScript对象）或数组。在迭代数组的情况下，回调函数每次传递一个数组索引和相应的数组值作为参数。（该值也可以通过访问this关键字得到，但是JavaScript将始终将this值作为一个Object ，即使它是一个简单的字符串或数字值。）该方法返回其第一个参数，这是迭代的对象
+            // jQuery.each( collection, callback(indexInArray, valueOfElement) )
+            // https://www.jquery123.com/jQuery.each/
+            // 也就是遍历第一个参数ret.data
+            // console.log(idx,article,'idx:article')
+              new Note({//前端获取到后端的数据后去创建note
+                id: article.id,
+                context: article.text,
+                username: article.username
+              });
+          });
+
+          Event.fire('waterfall');
+        }else{
+          Toast(ret.errorMsg);
+        }
+      })
+      .fail(function(){
+        Toast('网络异常');
+      });
+
+
+  }
+
+  function add(){//这个add和node.js里面的add有什么区别？
+    $.post('/api/notes/addfirst')//新增的需要提供内容。如果成功下面只是弹出toast提醒你成功了
+    .done(function(ret){
+      if(ret.status === 0){
+        console.log(ret)
+        // NoteManager.add(ret)
+        new Note({//前端获取到后端的数据后去创建note
+          username:ret.data
+      });
+        Toast('please input content "in input here"');
+        // window.location.reload()//如果不刷新，那么同样的note上面修改会导致增加事件而不是编辑事件。
+      }else{
+        Toast(ret.errorMsg);
+      }
+    });
+  //todo
+    // new Note();
+  }
+
+  return {
+    load: load,//加载所有数据
+    add: add
+  }
+
+})();
+
+module.exports.NoteManager = NoteManager
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
+
+/***/ }),
+/* 5 */
+/***/ (function(module, exports, __webpack_require__) {
+
 /* WEBPACK VAR INJECTION */(function($) {__webpack_require__(12);
 // var $=require('../lib/jquery-2.0.3.min.js')
 // var $=require('jquery')
@@ -565,7 +637,7 @@ module.exports.Toast = Toast;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 5 */
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var api = __webpack_require__(3);
@@ -587,62 +659,6 @@ var update = api(content, options);
 
 
 module.exports = content.locals || {};
-
-/***/ }),
-/* 6 */
-/***/ (function(module, exports, __webpack_require__) {
-
-/* WEBPACK VAR INJECTION */(function($) {var Toast = __webpack_require__(4).Toast;
-var Note = __webpack_require__(15).Note;
-// var Toast = require('./toast.js').Toast;
-var Event = __webpack_require__(1);
-
-
-var NoteManager = (function(){
-
-  function load() {//页面刚进来需要向服务器发请求去得到所有数据，然后加载所有数据渲染让用户看到,在app.js里面有触发这个load函数
-    $.get('/api/notes')
-      .done(function(ret){
-        if(ret.status == 0){
-            console.log($.each)
-          $.each(ret.data, function(idx, article) {
-            //   $.each()函数和 $(selector).each()是不一样的，那个是专门用来遍历一个jQuery对象。$.each()函数可用于迭代任何集合，无论是“名/值”对象（JavaScript对象）或数组。在迭代数组的情况下，回调函数每次传递一个数组索引和相应的数组值作为参数。（该值也可以通过访问this关键字得到，但是JavaScript将始终将this值作为一个Object ，即使它是一个简单的字符串或数字值。）该方法返回其第一个参数，这是迭代的对象
-            // jQuery.each( collection, callback(indexInArray, valueOfElement) )
-            // https://www.jquery123.com/jQuery.each/
-            // 也就是遍历第一个参数ret.data
-            // console.log(idx,article)
-              new Note({//前端获取到后端的数据后去创建note
-                id: article.id,
-                context: article.text,
-                username: article.username
-              });
-          });
-
-          Event.fire('waterfall');
-        }else{
-          Toast(ret.errorMsg);
-        }
-      })
-      .fail(function(){
-        Toast('网络异常');
-      });
-
-
-  }
-
-  function add(){//这个add和node.js里面的add有什么区别？
-    new Note();
-  }
-
-  return {
-    load: load,//加载所有数据
-    add: add
-  }
-
-})();
-
-module.exports.NoteManager = NoteManager
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
 /* 7 */
@@ -852,7 +868,13 @@ module.exports = function(module) {
 
 /* WEBPACK VAR INJECTION */(function($) {__webpack_require__(11);
 
-var Toast = __webpack_require__(4).Toast;//有一些需要发网络请求，不管成功与否就可以通过Toast给页面展示提示。
+var NoteManager = __webpack_require__(4).NoteManager;
+
+
+console.log(NoteManager,'note里面引入note-manager获取的是undefined')
+
+
+var Toast = __webpack_require__(5).Toast;//有一些需要发网络请求，不管成功与否就可以通过Toast给页面展示提示。
 var Event = __webpack_require__(1);//主要用到绑定事件和触发事件用，类似发布订阅模式。通过调用别的事件函数，这里就是瀑布流事件waterfall.js，在index.js里面
 // 如果把toast.js也变成一个立即执行函数并返回一个对象，那么也可以通过Event来绑定和触发该toast事件。
 // console.log(Event)
@@ -1031,6 +1053,10 @@ Note.prototype = {
     $.post('/api/notes/add', {note: msg})//新增的需要提供内容。如果成功下面只是弹出toast提醒你成功了
       .done(function(ret){
         if(ret.status === 0){
+          // NoteManager.add(ret)
+        //   new Note({//前端获取到后端的数据后去创建note
+        //     username:ret.data[ret.data.length-1].username
+        // });
           Toast('add success');
           // window.location.reload()//如果不刷新，那么同样的note上面修改会导致增加事件而不是编辑事件。
         }else{
@@ -1087,12 +1113,14 @@ module.exports.Note = Note;
 
 /* WEBPACK VAR INJECTION */(function($) {// var Toast=require('../mod/toast.js').Toast//因为require()返回的是module.exports对象，但是我们需要里面的Toast属性
 
-__webpack_require__(5);
+__webpack_require__(6);
 
 var Event=__webpack_require__(1)
 var WaterFall=__webpack_require__(7)
 // var Note=require('../mod/note').Note
-var NoteManager = __webpack_require__(6).NoteManager;
+var NoteManager = __webpack_require__(4).NoteManager;
+// console.log(NoteManager,'入口文件index.js里面能够获取到note-manager')
+// console.log(Note,'Note')
 
 // Toast('hello world')
 

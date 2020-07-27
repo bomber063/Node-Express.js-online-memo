@@ -15,8 +15,8 @@ var GitHubStrategy = require('passport-github').Strategy;//在passport基础上�
 
 passport.serializeUser(function(user, done) {//官网的序列化代码，意思就是用户登录的信息传递到passport之后，让它去生成一个session储存在内存里面。我们也可以设置存储到数据库里面
     // done(null, user.id);//以用户的id作为session的id并储存。
-    console.log('---serializeUser---')
-    console.log(user)
+    // console.log('---serializeUser---')
+    // console.log(user)
     done(null, user.id);//这里只需要序列化user.id即可，然后再反序列化deserializeUser里面对应的参数就是这个id，当然可以序列化整个user
   });
 
@@ -28,8 +28,8 @@ passport.deserializeUser(function(id, done) {//官网的反序列化代码，用
     //     done(null, user.id);
     // //   done(err, user);
     // });
-    console.log('---deserializeUser---')//如果登陆后再次刷新页面还是可以得到这个id，这个是从服务端把session发送给用户，用户储存到cookie里面，并且浏览器以sessionId的形式存储到浏览器的cookie里面获取到的。再次请求的时候会带上这个存在cookie里面的sessionID，如果与服务器内存（也可以存到数据库里面）里面的cookie匹配那么就知道你是已经登陆的用户了，然后就可以展示该用户的相关信息，比如用户名及头像等
-    console.log('id',id)
+    // console.log('---deserializeUser---')//如果登陆后再次刷新页面还是可以得到这个id，这个是从服务端把session发送给用户，用户储存到cookie里面，并且浏览器以sessionId的形式存储到浏览器的cookie里面获取到的。再次请求的时候会带上这个存在cookie里面的sessionID，如果与服务器内存（也可以存到数据库里面）里面的cookie匹配那么就知道你是已经登陆的用户了，然后就可以展示该用户的相关信息，比如用户名及头像等
+    // console.log('id',id)
     done(null, id);
   });
 
@@ -39,27 +39,27 @@ passport.use(new GitHubStrategy({
     clientID: 'e89343001d0334689ed3',
     clientSecret: 'b51bac623a02bfa32d9a3a6a6938535af0e18f9f',
     callbackURL: "http://127.0.0.1:8080/auth/github/callback",//向github的登陆入口去发送请求，然后把前面的clientID和clientSecret传递过去，那么github就知道是哪个应用发的请求。github就会向请求方传送一个密钥，会调用这个callback回来
-    proxy:true
+    // proxy:true
   },
   function(accessToken, refreshToken, profile, done) {
     // User.findOrCreate({ githubId: profile.id }, function (err, user) {
     // });
-    console.log('---passport.use(new GitHubStrategy---')
-    console.log(profile)
+    // console.log('---passport.use(new GitHubStrategy---')
+    // console.log(profile)
     done(null, profile);
   }
 ));
 
 
 router.get('/logout', function(req, res){
-  console.log('logout前的req',req.user)
-  console.log('logout前的req.session',req.session)
+  // console.log('logout前的req',req.user)
+  // console.log('logout前的req.session',req.session)
   req.logout();
   req.session.destroy()
   //这里如果只是设置的req.logout()，虽然可以清除req的信息，但是这里很奇怪还存在req.session，所以还需要清除req.session，所以req.logout()和req.session.destroy()一起使用。
   // 因为第一次登陆页面后台会发送一个set-cookie的响应头给前端设置cookie，以后前端每次发请求都会带上这个cookie。但是这里如果使用req.session.destroy()清除了session，那么客户端的cookie中就没有sessionId，后端会再次set-cookie给前端，前端再次把这个后端的cookie放到客户端的cookie里面保存。
-  console.log('logout后的req',req.user)
-  console.log('logout后的req.session',req.session)
+  // console.log('logout后的req',req.user)
+  // console.log('logout后的req.session',req.session)
 
 
 //   express-session依赖的[req.session.destroy](https://www.npmjs.com/package/express-session),销毁session并取消设置req.session属性
@@ -73,8 +73,8 @@ router.get('/github',
 router.get('/github/callback',//当有回调函数回来之后，就会真正的得到这些用户信息，这个过程是github账号体系自己返回的的它发的这个请求。这个路由是回调地址，也就是便利贴网站需要接收的请求的地址。
   passport.authenticate('github', { failureRedirect: '/login' }),//失败的话会进入到登陆的路由
   function(req, res) {//成功会进入到这里，这是github服务器想便利贴后台发送的这些数据，存在req.user里面
-    console.log('sucess....')
-    console.log(req.user)
+    // console.log('sucess....')
+    // console.log(req.user)
     req.session.user = {//成功后就给响应的session里面的user增加id,username,avatar,provider
       id: req.user.id,//这里的req.user的信息在前面的console.log(user)里面可以看到，用户id
       username: req.user.displayName || req.user.username,//用户名字

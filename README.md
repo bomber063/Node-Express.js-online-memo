@@ -3707,6 +3707,243 @@ InternalOAuthError: Failed to fetch user profile
 http://127.0.0.1:8080/auth/github/callback?code=cb120aa28b9ff1d2afe2
 ```
 * 后端收到这个请求以后，就拿到了授权码（code参数）
+## 登陆的权限控制
+* 当用户没有登陆的时候进入可以看到所有的便利签。**但是编辑，删除，增加便利签的时候提示请登陆**
+* 登陆后展示的是自己创建的便利签，这时候就可以编辑，删除和增加便利签了。注销后可以展示所有的，包括自己的。所以这些便签就有一个**归属的概念，就是哪个便签是规谁创建的**。
+* 因为有了归属，那么需要在数据库里面增加一个属性uid,归属的权限就是先进行`req.session.user`是否存在进行判断，如果不存在就提示**请先登录**
+```js
+router.post('/notes/add', function(req, res, next) {
+  if(!req.session.user){
+    return res.send({status:1,errorMsg:'请先登录'})
+  }
+  Note.create()//后面的代码省略
+
+});
+/* 修改note */
+router.post('/notes/edit', function(req, res, next) {
+  if(!req.session.user){
+    return res.send({status:1,errorMsg:'请先登录'})
+  }
+  Note.update()//后面的代码省略 
+});
+/* 删除note */
+router.post('/notes/delete', function(req, res, next) {
+  if(!req.session.user){
+    return res.send({status:1,errorMsg:'请先登录'})
+  }
+  Note.destroy()//后面的代码省略
+});
+
+module.exports = router;
+```
+* 增加这个Note是谁创建的归属uid,还可以把用户的头像和名字还有创建事件都可以写进去
+### express-session的报错
+* 有如下报错
+```
+Sun, 26 Jul 2020 08:07:14 GMT express-session deprecated undefined resave option; provide resave option at app.js:38:9
+Sun, 26 Jul 2020 08:07:14 GMT express-session deprecated undefined saveUninitialized option; provide saveUninitialized option at app.js:38:9
+```
+* 解决办法就是增加下面代码
+```js
+app.use(session({
+  secret: 'keyboard cat',
+  resave:true,//这个是增加的
+  saveUninitialized:true//这个是增加的
+  // cookie:{secure:true}
+}));
+```
+* 因为[官网](https://www.npmjs.com/package/passport)就是这么写的
+* [express-session 保存遇到的问题](https://www.cnblogs.com/kevinlvhsl/p/5223840.html)
+* [express-session启动警告deprecated undefined resave option](https://blog.csdn.net/start_p/article/details/84657486)
+* [express-session启动警告deprecated undefined resave option](https://www.iteye.com/blog/guard-2122745)
+### promise的再次测试
+* 首先Note.create的是异步的，然后存在返回值，所以下一个then可以获取到这个返回值作为参数，也就是notes
+```js
+router.post('/notes/add', function(req, res, next) {
+  Note.create({text:req.body.note})
+    Note.findAll({
+      raw: true
+    })//因为findAll是返回整个model，并且成功了，所以把返回值作为下一个then的参数，也就是notes
+    .then(function(notes){
+      console.log(notes,'notes')
+    })
+});
+```
+* 第一个Note.create是由返回值的，并且是异步，那么下一个notes是整个model，但是第二个then里面没有返回值，所以第三个then里面的notes是undefined。第二个then里面的返回值赋值给a，因为是异步的，所以出于pending状态
+```js
+router.post('/notes/add', function(req, res, next) {
+  Note.create({text:req.body.note})//post请求的的数据是在req.body里面去获取
+  .then(function(notes){
+    var a=Note.findAll({//因为这里并没有把a返回出去，所下一个then的notes里面什么都没有就是undefinde
+      raw: true
+    })
+  
+    console.log(notes,'notes')//但是它本身的notes是上一个Note.create的返回值，也就是整个model，是存在的
+    console.log(a,'a')//这个a就是Note.findAll的返回值，也是整个model,但是它是异步的，这里处于pending状态，需要.then成功后获得。
+    // return a
+  })
+  .then(function (notes) {
+    console.log(notes,'notes')//这里因为上一个then里面没有返回值，那么notes就是undefined
+  })
+});
+```
+* 如果我把第二个then的返回值返回出去，那么第三个then就可以获取到这个返回值，也就是整个model了
+```js
+router.post('/notes/add', function(req, res, next) {
+  Note.create({text:req.body.note})
+  .then(function(notes){
+    var a=Note.findAll({
+      raw: true
+    })
+    console.log(notes,'notes')
+    console.log(a,'a')
+    return a//把第二个then里面的Note.fineAll的返回值返回出去给第三个then的参数使用
+  })
+  .then(function (notes) {
+    console.log(notes,'notes')
+  })
+});
+```
+* 全部返回结果参考官网的[then](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Promise/then)
+### 关联Associations
+* **这部分我看的不是很明白，测试也总是报错,以后再看怎么解决吧**
+* [Sequelize官方中文文档 6. Associations - 关联](https://www.jianshu.com/p/13b59e11ab4c)
+* [Sequelize官方GitHub](https://github.com/sequelize/sequelize)
+* [Sequelize官方中文文档](https://github.com/demopark/sequelize-docs-Zh-CN)
+* [Sequelize官方英文文档](https://sequelize.org/)
+* [Sequelize使用总结（模型，关联表，事务，循环，及常见问题）](https://blog.csdn.net/weixin_37778679/article/details/82692584)
+* [Node.js Sequelize 模型(表)之间的关联及关系模型的操作](https://blog.csdn.net/qq_27970999/article/details/89856966)
+* [【知识整理】Node.js-Sequelize之模型（表）之间的关联关系](https://blog.csdn.net/qq_19891827/article/details/77967044)
+* [Associations - 关联](https://github.com/demopark/sequelize-docs-Zh-CN/blob/master/core-concepts/assocs.md)
+## 解决了一个问题（我觉得值得庆祝和记录），点击add会显示名字，刷新后还是会显示名字
+* 目前我还只是在一个数据库表里面存了用户名字和内容，应该可以分开存储的，但是我前面的数据表关联学的不好，所以暂时不用这个方法，以后在说吧。
+### 刚开始的时候点击add的时候不会显示名字，只有刷新后才会显示名字
+* **因为刚开始的前端代码创建一个note在note-manager.js文件里面note里面没有任何参数**
+```js
+  function add(){//刚开始这里的add只有一个new Note()，没有任何参数，所以没有名字显示，后续还可以增加时间和头像
+    new Note();
+  }
+```
+* 但是在刷新后会显示名字，是因为,通过文件note.js的前端代码，发送路由为`/api/notes/add`的请求后提供了内容。
+```js
+  add: function (msg){
+    console.log('addd...');
+    var self = this;
+    $.post('/api/notes/add', {note: msg})//这里提供的便利贴的内容
+      .done(function(ret){
+        if(ret.status === 0){
+          Toast('add success');
+        }else{
+          self.$note.remove();
+          Event.fire('waterfall')
+          Toast(ret.errorMsg);
+        }
+      });
+  },
+```
+* 对应的在后端对应的路由里面创建(Note.create)了数据，包括内容`text:req.body.note`,用户名`req.session.user.username`,uid`req.session.user.id`
+```js
+router.post('/notes/add', function(req, res, next) {
+  if(!req.session.user){
+    return res.send({status:1,errorMsg:'请先登录'})
+  }
+  Note.create({text:req.body.note,username:req.session.user.username,uid:req.session.user.id})//post请求的的数据是在req.body里面去获取
+  //增加这个Note是谁创建的归属uid,另外可以把用户的头像和名字还有创建事件都可以写进去，但是不建议，正常的表和表之间通过一个key去做关联，除了Note这个数据表以外，还可以创建一个user表，这个user表只记录当前用户的信息，比如uid为1的用户，的中文姓名，头像，邮箱，手机号，密码的加密后的信息等，然后两个表之间通过uid做一个关联即可。
+  Note.findAll({raw:true})
+  .then(function(notes){
+    res.send({status:0,data:notes})//因为增加note的前端代码就实现了效果，后端只需要告诉前端增加成功即可。成功就是{status:0}
+  })
+  .catch(function(){
+    res.send({status:1,errorMsg:'数据库出错'})
+  })
+});
+```
+* 用户名是从第三方验证的文件auth.js中获得得到的
+```js
+router.get('/github/callback',//当有回调函数回来之后，就会真正的得到这些用户信息，这个过程是github账号体系自己返回的的它发的这个请求。这个路由是回调地址，也就是便利贴网站需要接收的请求的地址。
+  passport.authenticate('github', { failureRedirect: '/login' }),//失败的话会进入到登陆的路由
+  function(req, res) {//成功会进入到这里，这是github服务器想便利贴后台发送的这些数据，存在req.user里面
+    req.session.user = {//成功后就给响应的session里面的user增加id,username,avatar,provider
+      id: req.user.id,//这里的req.user的信息在前面的console.log(user)里面可以看到，用户id
+      username: req.user.displayName || req.user.username,//用户名字
+      avatar: req.user._json.avatar_url,//用户头像
+      provider: req.user.provider//信息的提供方
+    };
+    res.redirect('/');
+  });
+```
+* 所以刷新后的后端的代码路径`notes`在api.js文件中就会显示之前的数据库存的内容加上刚刚增加的那一个便利贴内容。
+```js
+router.get('/notes', function(req, res, next) {
+  Note.findAll({raw:true})
+  .then(function(notes){
+    console.log(notes)
+    res.send({status:0,data:notes})
+  })
+  .catch(function(){
+    res.send({status:1,errorMsg:'数据库出错'})
+  })
+  // console.log('/notes');
+});
+```
+* 然后前端收到这个刷新后的路径对应的响应就会去获取到所有的便利贴并且通过`new Note()`创建，包括刚刚增加的那一个，这里面有用户名，id和内容,在note-manager.js文件中
+```js
+  function load() {//页面刚进来需要向服务器发请求去得到所有数据，然后加载所有数据渲染让用户看到,在app.js里面有触发这个load函数
+    $.get('/api/notes')
+      .done(function(ret){
+        if(ret.status == 0){
+            // console.log($.each)
+          $.each(ret.data, function(idx, article) {
+            //   $.each()函数和 $(selector).each()是不一样的，那个是专门用来遍历一个jQuery对象。$.each()函数可用于迭代任何集合，无论是“名/值”对象（JavaScript对象）或数组。在迭代数组的情况下，回调函数每次传递一个数组索引和相应的数组值作为参数。（该值也可以通过访问this关键字得到，但是JavaScript将始终将this值作为一个Object ，即使它是一个简单的字符串或数字值。）该方法返回其第一个参数，这是迭代的对象
+            // jQuery.each( collection, callback(indexInArray, valueOfElement) )
+            // https://www.jquery123.com/jQuery.each/
+            // 也就是遍历第一个参数ret.data
+            // console.log(idx,article,'idx:article')
+              new Note({//前端获取到后端的数据后去创建note
+                id: article.id,//id
+                context: article.text,//便利贴内容
+                username: article.username//用户名字
+              });
+          });
+
+          Event.fire('waterfall');
+        }else{
+          Toast(ret.errorMsg);
+        }
+      })
+      .fail(function(){
+        Toast('网络异常');
+      });
+```
+* 小结
+  * 点击增加按钮的时候没有后端路径触发,然后**前端增加一个note便利签不带名字**。
+  * 失去焦点的时候就触发路径`/notes/add`。然后对应的后端路径会Note.create增加一个便利签在数据库里面。
+  * 刷新后，触发路径`/notes`获取所有note然后给前端对应的路径，然后就创建数据库里面的所有note，包括刚刚创建的，这里的note是包括用户名的，所以刷新后才会显示名字。
+### 点击add的时候会显示名字，刷新后还会显示名字
+* 就是在这之前新建一个note是不会显示名字的，需要刷新后才能显示名字。我通过增加一个路由`addfirst`路由.
+* 并且这里还用到了new Promise成功后把resolve的值传给下一个then的第一个函数的参数的办法。具体见[Promise](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Promise),因为前端发了请求后后端需要告诉这个请求的用户名字是哪个，这个值可以直接通过`req.session.user.username`获取，所以就把这个值传过去给前端用即可。这只是为了前端显示效果，**因为刷新后的路径/notes会获取到数据库里面的信息，然后创建note**
+* 通过**这个addfirst路由不创建任何数据，就不影响数据库内容**,把所有创建数据的都放到了路由`/notes`。但是在`notes/add`路由**单独创建一个notes**
+```js
+router.post('/notes/addfirst', function(req, res, next) {
+  if(!req.session.user){
+    return res.send({status:1,errorMsg:'请先登录'})
+  }
+
+  new Promise((resolve,reject)=>resolve(req.session.user.username))//new Promise成功后把resolve的值传给下一个then的第一个函数的参数的办法
+  .then(function(username){
+    console.log(username)
+    res.send({status:0,data:username})//因为增加note的前端代码就实现了效果，后端只需要告诉前端增加成功即可。成功就是{status:0}
+  })
+  .catch(function(){
+    res.send({status:1,errorMsg:'数据库出错'})
+  })
+});
+```
+* 后续还可以增加创建事件和头像。
+* 小结
+  * 点击增加按钮的时候触发路径`/notes/addfirst`,仅仅查找并不是创建用户名并且通过promise返回给前端使用。,然后**前端增加一个note便利签带名字**。并弹出please input content "in input here"
+  * 失去焦点的时候就触发路径`/notes/add`。然后对应的**后端路径会Note.create增加一个便利签在数据库里面。**
+  * **刷新后，触发路径`/notes`后端获取所有note然后给前端对应的路径，然后就创建数据库里面的所有note，包括刚刚创建的，这里的note是包括用户名的，所以刷新后才会显示名字。**
 ## 其他
 ### 小技巧安装nrm切换源
 * [npr文档](https://www.npmjs.com/package/nrm)

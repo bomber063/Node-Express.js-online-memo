@@ -1,5 +1,11 @@
 require('less/note.less');
 
+var NoteManager = require('mod/note-manager.js').NoteManager;
+
+
+console.log(NoteManager,'note里面引入note-manager获取的是undefined')
+
+
 var Toast = require('./toast.js').Toast;//有一些需要发网络请求，不管成功与否就可以通过Toast给页面展示提示。
 var Event = require('mod/event.js');//主要用到绑定事件和触发事件用，类似发布订阅模式。通过调用别的事件函数，这里就是瀑布流事件waterfall.js，在index.js里面
 // 如果把toast.js也变成一个立即执行函数并返回一个对象，那么也可以通过Event来绑定和触发该toast事件。
@@ -179,6 +185,10 @@ Note.prototype = {
     $.post('/api/notes/add', {note: msg})//新增的需要提供内容。如果成功下面只是弹出toast提醒你成功了
       .done(function(ret){
         if(ret.status === 0){
+          // NoteManager.add(ret)
+        //   new Note({//前端获取到后端的数据后去创建note
+        //     username:ret.data[ret.data.length-1].username
+        // });
           Toast('add success');
           // window.location.reload()//如果不刷新，那么同样的note上面修改会导致增加事件而不是编辑事件。
         }else{

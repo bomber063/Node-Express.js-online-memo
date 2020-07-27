@@ -6,6 +6,8 @@ var Event=require('../mod/event.js')
 var WaterFall=require('../mod/waterfall')
 // var Note=require('../mod/note').Note
 var NoteManager = require('mod/note-manager.js').NoteManager;
+// console.log(NoteManager,'入口文件index.js里面能够获取到note-manager')
+// console.log(Note,'Note')
 
 // Toast('hello world')
 

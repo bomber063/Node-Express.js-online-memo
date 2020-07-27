@@ -36,9 +36,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // https://www.npmjs.com/package/express-session
 app.use(session({
-  secret: 'sessionsecret'
-  // resave:false,
-  // savaUninitialized:true,
+  secret: 'keyboard cat',
+  resave:true,
+  saveUninitialized:true
   // cookie:{secure:true}
 }));
 

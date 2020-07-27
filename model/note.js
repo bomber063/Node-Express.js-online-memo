@@ -13,8 +13,6 @@ const sequelize = new Sequelize({
 //https://sequelize.org/master/manual/getting-started.html#installing
 //https://sequelize.org/master/class/lib/sequelize.js~Sequelize.html#instance-constructor-constructor
 
-
-
 // sequelize.authenticate()
 // .then(function(){
 //     console.log('Connection has been established successfully.');
@@ -47,7 +45,17 @@ const Note = sequelize.define('note', {//定义一个名字叫做note的表结�
         // primaryKey: true,
         // defaultValue: '',
         allowNull: true,//如果设置为false不允许出现null，出现null的都不显示出来，也就是查询不到
+    },
+    uid:{//增加这个note 是谁创建的这个归属uid
+        type: Sequelize.STRING,
+        allowNull: true
+    },
+    username:{
+        type: Sequelize.STRING,
+        allowNull: true
     }
+
+
     // omitNull:false
     // id 会自动去创建，官网的名字叫做UUID，存储唯一通识标识符列,但是经过测试显示的还是叫做id的属性
     // https://sequelize.org/master/class/lib/data-types.js~UUID.html
@@ -55,46 +63,45 @@ const Note = sequelize.define('note', {//定义一个名字叫做note的表结�
     // https://sequelize.org/master/manual/model-basics.html
 });
 
-
 // User.sync() -如果不存在则创建表（如果已经存在则不执行任何操作）
 // User.sync({ force: true }) -这将创建表，如果该表已经存在，则将其首先删除
 // User.sync({ alter: true }) -这将检查数据库中表的当前状态（它具有哪些列，它们的数据类型等），然后在表中进行必要的更改以使其与模型匹配。
 
 // 注意这里需要异步去执行
-Note.sync({ force: false }).then(function () {//异步创建这个数据表
-    Note.create(
-        { text: '1hello world' },
+// Note.sync({ force: true }).then(function () {//异步创建这个数据表
+//     Note.create(
+//         { text: '1hello world'},
 
-    );//，然后往这个表里面增加内容
-    console.log("The table for the User model was just (re)created!");
-}).then(function () {
-    // raw 是返回原始数据结果https://sequelize.org/master/class/lib/model.js~Model.html#static-method-findAll
-    Note.findAll({
-        raw:true,
-        attributes:['text']
-    })
-    .then(function (notes) {//查找内容
-        console.log(notes)//查找到就去展示这个数据
-        // console.log(Sequelize.STRING,'Sequelize.STRING')
-        // console.log(DataTypes.STRING,'DataTypes.STRING')
-        // console.log(DataTypes,'DataTypes')
-        // console.log(Sequelize,'Sequelize')
-    });
+//     );//，然后往这个表里面增加内容
+//     console.log("The table for the Note model was just (re)created!");
+// // }).then(function () {
+// //     // raw 是返回原始数据结果https://sequelize.org/master/class/lib/model.js~Model.html#static-method-findAll
+// //     Note.findAll({
+// //         raw:true,
+// //         attributes:['text']
+// //     })
+// //     .then(function (notes) {//查找内容
+// //         console.log(notes)//查找到就去展示这个数据
+// //         // console.log(Sequelize.STRING,'Sequelize.STRING')
+// //         // console.log(DataTypes.STRING,'DataTypes.STRING')
+// //         // console.log(DataTypes,'DataTypes')
+// //         // console.log(Sequelize,'Sequelize')
+// //     });
     
-})
+// })
 
+
+    //  Note.create(
+    //      { text: '1hello world' },
+
+    //  )
 
 // Note.findAll({
-//     raw: true,
-//     order: [
-//         ['text','NULLS last']
-//     ]
+//     raw:true
 // })
 //     .then(function (notes) {
-//         console.log(notes)
+//         console.log(notes,'notes')
 //     })
+
+
 module.exports.Note=Note
-
-
-
-
