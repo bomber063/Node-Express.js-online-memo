@@ -521,7 +521,7 @@ module.exports = function (list, options) {
 var Note = __webpack_require__(15).Note;
 // var Toast = require('./toast.js').Toast;
 var Event = __webpack_require__(1);
-console.log(Note,'Note')
+// console.log(Note,'Note')
 
 
 var NoteManager = (function(){
@@ -583,6 +583,63 @@ var NoteManager = (function(){
 })();
 
 module.exports.NoteManager = NoteManager
+//下面代码是把立即执行函数 返回对象修改为普通函数
+// function noteManager(){
+//   this.load();//创建toast节点函数
+//   this.add();//显示toast节点函数
+// }
+
+// noteManager.prototype = {
+//   load: function(){
+//     $.get('/api/notes')
+//       .done(function(ret){
+//         if(ret.status == 0){
+//             // console.log($.each)
+//           $.each(ret.data, function(idx, article) {
+//             //   $.each()函数和 $(selector).each()是不一样的，那个是专门用来遍历一个jQuery对象。$.each()函数可用于迭代任何集合，无论是“名/值”对象（JavaScript对象）或数组。在迭代数组的情况下，回调函数每次传递一个数组索引和相应的数组值作为参数。（该值也可以通过访问this关键字得到，但是JavaScript将始终将this值作为一个Object ，即使它是一个简单的字符串或数字值。）该方法返回其第一个参数，这是迭代的对象
+//             // jQuery.each( collection, callback(indexInArray, valueOfElement) )
+//             // https://www.jquery123.com/jQuery.each/
+//             // 也就是遍历第一个参数ret.data
+//             // console.log(idx,article,'idx:article')
+//               new Note({//前端获取到后端的数据后去创建note
+//                 id: article.id,
+//                 context: article.text,
+//                 username: article.username
+//               });
+//           });
+
+//           Event.fire('waterfall');
+//         }else{
+//           Toast(ret.errorMsg);
+//         }
+//       })
+//       .fail(function(){
+//         Toast('网络异常');
+//       });
+//   },
+//   add: function(){
+//     $.post('/api/notes/addfirst')//新增的需要提供内容。如果成功下面只是弹出toast提醒你成功了
+//     .done(function(ret){
+//       if(ret.status === 0){
+//         console.log(ret)
+//         // NoteManager.add(ret)
+//         new Note({//前端获取到后端的数据后去创建note
+//           username:ret.data
+//       });
+//         Toast('please input content "in input here"');
+//         // window.location.reload()//如果不刷新，那么同样的note上面修改会导致增加事件而不是编辑事件。
+//       }else{
+//         Toast(ret.errorMsg);
+//       }
+//     });
+
+//   }
+// };
+
+
+// function NoteManager(){
+//   return new noteManager();
+// }
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
@@ -871,7 +928,7 @@ module.exports = function(module) {
 var NoteManager = __webpack_require__(4).NoteManager;
 
 
-console.log(NoteManager,'note里面引入note-manager获取的是undefined')
+// console.log(NoteManager,'note里面引入note-manager获取的是undefined')
 
 
 var Toast = __webpack_require__(5).Toast;//有一些需要发网络请求，不管成功与否就可以通过Toast给页面展示提示。

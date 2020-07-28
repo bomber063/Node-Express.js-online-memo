@@ -3,7 +3,7 @@ require('less/note.less');
 var NoteManager = require('mod/note-manager.js').NoteManager;
 
 
-console.log(NoteManager,'note里面引入note-manager获取的是undefined')
+// console.log(NoteManager,'note里面引入note-manager获取的是undefined')
 
 
 var Toast = require('./toast.js').Toast;//有一些需要发网络请求，不管成功与否就可以通过Toast给页面展示提示。

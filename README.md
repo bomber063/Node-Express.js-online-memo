@@ -3405,6 +3405,7 @@ var NoteManager = require('mod/note-manager.js').NoteManager;
 var NoteManager = require('mod/note-manager.js');
 ```
 * 先记录一下，**不知道是不是因为index.js是入口文件所以可以这么引入，还是说NoteManager.js本身是一个立即执行函数，所以不能这么引入在非入口文件呢？**
+* **经过测试，我把立即执行函数返回一个对象修改为一个普通函数还是不能在别的组件获取到，只能在入口index.js文件获取到**
 ### 在便签中输入空格会转义
 * 不知道是不是note.js文件里面的html()的原因，后续把它修改为text()在测试一下
 * [Jquery中html()、text()、val()的使用和区别](https://www.cnblogs.com/dbj66/p/8465958.html)
@@ -3461,7 +3462,7 @@ app.use(passport.session());
 ```
 * 然后还需要设置session.
   * Passport要保持sessions持久登陆，需要验证用户的序列化session和后续反序列化请求的设置。
-  * passport.serializeUser是去生成一个session储存在内存里面，passport.deserializeUser是刷新后反序列化从内存中拿到这个session解析知道是某个用户。
+  * passport.serializeUser是去生成一个session储存在内存里面，passport.deserializeUser是刷新后反序列化从内存中拿到这个session解析知道是某个用户。（**所以因为存储到内存里面，所以服务器重启那么这个session就消失了，就需要重新登陆，所有的登陆状态变成未登录状态，所以一般的大型网站的session是需要储存到数据库里面，这样服务器重启，那么cookie还在。对应的session就也存在。数据库一查询就认为是登陆状态。就不用影响用户登录，对于更大的利用到分布式服务器的时候，一个服务器不够没需要多个服务器。登陆后记录到某个服务器为登陆状态，下次用电脑是另外一个地方，连接的是另外一个服务器，那就可能没有登陆了，这里就要利用到数据库层面的共享**）
 ```js
 passport.serializeUser(function(user, done) {//官网的序列化代码，意思就是用户登录的信息传递到passport之后，让它去生成一个session储存在内存里面。我们也可以设置存储到数据库里面
     // done(null, user.id);//以用户的id作为session的id并储存。
@@ -3961,6 +3962,159 @@ router.post('/notes/addfirst', function(req, res, next) {
   * 点击增加按钮的时候触发路径`/notes/addfirst`,仅仅查找并不是创建用户名并且通过promise返回给前端使用。,然后**前端增加一个note便利签带名字**。并弹出please input content "in input here"
   * 失去焦点的时候就触发路径`/notes/add`。然后对应的**后端路径会Note.create增加一个便利签在数据库里面。**
   * **刷新后，触发路径`/notes`后端获取所有note然后给前端对应的路径，然后就创建数据库里面的所有note，包括刚刚创建的，这里的note是包括用户名的，所以刷新后才会显示名字。**
+## 继续前面的权限控制，用到session（自己写的）
+* 前面说到增加一个归属uid。
+```js
+router.get('/notes', function(req, res, next) {
+  Note.findAll({raw:true})
+  .then(function(notes){
+    console.log(notes)
+    res.send({status:0,data:notes})
+  })
+  .catch(function(){
+    res.send({status:1,errorMsg:'数据库出错'})
+  })
+  // console.log('/notes');
+});
+/* 创建note */
+router.post('/notes/add', function(req, res, next) {
+  // 对于post请求是req.body,如果是get请求就是req.query
+  // http://expressjs.com/en/5x/api.html#req.body
+  // http://expressjs.com/en/5x/api.html#req.query
+  if(!req.session.user){
+    return res.send({status:1,errorMsg:'请先登录'})
+  }
+  Note.create({text:req.body.note,username:req.session.user.username,uid:req.session.user.id})//增加uid
+  Note.findAll({raw:true})
+  .then(function(notes){
+    res.send({status:0,data:notes})//因为增加note的前端代码就实现了效果，后端只需要告诉前端增加成功即可。成功就是{status:0}
+  })
+  .catch(function(){
+    res.send({status:1,errorMsg:'数据库出错'})
+  })
+});
+
+/* 修改note */
+router.post('/notes/edit', function(req, res, next) {
+  if(!req.session.user){
+    return res.send({status:1,errorMsg:'请先登录'})
+  }
+  Note.update(
+    {text:req.body.note},//只需要修改对应id的text内容就可以了
+    {
+      where:{
+        id:req.body.id,
+        uid:req.session.user.id//增加uid
+      }
+  })
+  .then(function(notes){
+    console.log('arguments',arguments[0])
+    console.log('notes',notes)
+    res.send({status:0});
+  })
+  .catch(function(){
+    res.send({status:1,errorMsg:'数据库出错'})
+  })
+});
+/* 删除note */
+router.post('/notes/delete', function(req, res, next) {
+  if(!req.session.user){
+    return res.send({status:1,errorMsg:'请先登录'})
+  }
+  Note.destroy({
+    where:{
+      id:req.body.id,
+      uid:req.session.user.id//增加uid
+    }
+  })
+  .then(function(notes){
+    res.send({status:0});
+  })
+  .catch(function(){
+    res.send({status:1,errorMsg:'数据库出错'})
+  })
+});
+```
+* 如果不在编辑和删除里面增加uid这个属性也是可以通过对应的id找到的，因为id也是唯一的。只要登录也可以编辑和删除，**但是问题是凡是登录的用户可以删除任何信息，只要登录的用户可以发送AJAX请求，那么登陆状态请求生效就会删除别人的信息，如果有uid那么安全性就可以保证，因为uid是登陆用户的信息（每个用户不同，别人也不知道你的用户uid是什么），id是自动创建的编码（按照1234这样的顺序创建编码，这个就很好猜到）**
+* 后端对安全性和后门比较需要下功夫。前端这一块就做的简单一点。不用管太多，这个安全性的责任主要在后端，不在前端。
+* 增加session来控制不可以删除别人创建的便利贴(**不过这个功能基本用不到，因为后面还设置了登陆后别人创建的便利贴你自己看不到**)
+```js
+router.post('/notes/delete', function(req, res, next) {
+  if(!req.session.user){
+    return res.send({status:1,errorMsg:'请先登录'})
+  }
+  Note.findOne(
+    {raw:true,
+      where: {
+        id:req.body.id,
+        uid:req.session.user.id, 
+        // [Op.and]:[
+          // {id:req.body.id},
+          // {uid:req.session.user.id},
+        // ],
+      }
+    }
+    // ,
+    // { fields: ['uid'] }
+    )
+  .then(function(note){
+    console.log(note,'note')
+    if(note===null)//如果找不到对应的id和uid说明 这个便利贴不是登陆用户创建的，所以不能删除
+    {
+      res.send({status:1,errorMsg:'不可以删除别人的数据'})
+      // console.log('没有找到')
+    }
+    else{//如果能找到就说明便利贴是登陆用户创建的，那就顺利删除
+      Note.destroy({//这里的删除destroy要找到哪一个id，要使用where语句
+        where:{
+          [Op.and]:[
+            {id:note.id},
+            {uid:note.uid},
+          ],
+        },
+      })
+      .then(function(note){
+        console.log(note,'note')
+        res.send({status:0});
+      })
+      .catch(function(){
+        res.send({status:1,errorMsg:'数据库出错'})
+      })
+    }
+  })
+```
+* 增加session来控制权限后的代码,**主要是控制登陆后只能看到自己的创建的便利贴，别人创建的看不到。未登录状态可以看到所有的便利贴**
+```js
+router.get('/notes', function(req, res, next) {
+if(req.session.user&&req.session.user.id){//如果req.session.user存在说明已经登陆，就显示登陆部分的便利贴
+  Note.findAll({raw:true,
+    where:{
+      uid:req.session.user.id
+    }
+  })
+    .then(function(notes){
+      console.log(notes)
+      res.send({status:0,data:notes})
+    })
+    .catch(function(){
+      res.send({status:1,errorMsg:'数据库出错'})
+    })
+}
+else{//如果没有登陆就显示所有的便利贴。
+  Note.findAll({raw:true})
+    .then(function(notes){
+      console.log(notes)
+      res.send({status:0,data:notes})
+    })
+    .catch(function(){
+      res.send({status:1,errorMsg:'数据库出错'})
+    })
+    }
+});
+```
+* 以上是自己写的代码，但是比较乱，所以后面看了老师代码后稍微优化了
+## 对比老师的代码后稍微把代码优化了以下
+* 
 ## 其他
 ### 小技巧安装nrm切换源
 * [npr文档](https://www.npmjs.com/package/nrm)

@@ -1,5 +1,6 @@
 var express = require('express');
 var router = express.Router();
+const { Sequelize, DataTypes, Op } = require('sequelize');
 var Note=require('../model/note').Note
 
 /* 
@@ -16,16 +17,36 @@ var Note=require('../model/note').Note
 /* 前端发的请求都会到这里对应的路由去执行响应的函数 */
 /* 获取所有notes */
 router.get('/notes', function(req, res, next) {
+if(req.session.user&&req.session.user.id){//如果req.session.user存在说明已经登陆，就显示登陆部分的便利贴
+  Note.findAll({raw:true,
+    where:{
+      uid:req.session.user.id
+    }
+  })
+    .then(function(notes){
+      console.log(notes)
+      res.send({status:0,data:notes})
+    })
+    .catch(function(){
+      res.send({status:1,errorMsg:'数据库出错'})
+    })
+    // console.log('/notes');
+}
+else{//如果没有登陆就显示所有的便利贴。
   Note.findAll({raw:true})
-  .then(function(notes){
-    console.log(notes)
-    res.send({status:0,data:notes})
-  })
-  .catch(function(){
-    res.send({status:1,errorMsg:'数据库出错'})
-  })
-  // console.log('/notes');
+    .then(function(notes){
+      console.log(notes)
+      res.send({status:0,data:notes})
+    })
+    .catch(function(){
+      res.send({status:1,errorMsg:'数据库出错'})
+    })
+    // console.log('/notes');
+  // });
+    }
 });
+
+
 /* 创建note */
 router.post('/notes/add', function(req, res, next) {
   // 对于post请求是req.body,如果是get请求就是req.query
@@ -49,7 +70,7 @@ router.post('/notes/add', function(req, res, next) {
   // console.log(req)
 });
 
-router.post('/notes/addfirst', function(req, res, next) {
+router.post('/notes/addfirst', function(req, res, next) {//这一步只是把用户名字提供给前端使用，不做任何数据库修改
   // 对于post请求是req.body,如果是get请求就是req.query
   // http://expressjs.com/en/5x/api.html#req.body
   // http://expressjs.com/en/5x/api.html#req.query
@@ -81,7 +102,8 @@ router.post('/notes/edit', function(req, res, next) {
     {text:req.body.note},//只需要修改对应id的text内容就可以了
     {
       where:{//找到数据库里面后端发给前端的id，并且前端又传过来的id.
-        id:req.body.id
+        id:req.body.id,
+        uid:req.session.user.id
       }
   })
   .then(function(notes){
@@ -98,17 +120,46 @@ router.post('/notes/delete', function(req, res, next) {
   if(!req.session.user){
     return res.send({status:1,errorMsg:'请先登录'})
   }
-  Note.destroy({//这里的删除destroy要找到哪一个id，要使用where语句
-    where:{
-      id:req.body.id
+  Note.findOne(
+    {raw:true,
+      where: {
+        id:req.body.id,
+        uid:req.session.user.id, 
+        // [Op.and]:[
+          // {id:req.body.id},
+          // {uid:req.session.user.id},
+        // ],
+      }
+    }
+    // ,
+    // { fields: ['uid'] }
+    )
+  .then(function(note){
+    console.log(note,'note')
+    if(note===null)//如果找不到对应的id和uid说明 这个便利贴不是登陆用户创建的，所以不能删除
+    {
+      res.send({status:1,errorMsg:'不可以删除别人的数据'})
+      // console.log('没有找到')
+    }
+    else{//如果能找到就说明便利贴是登陆用户创建的，那就顺利删除
+      Note.destroy({//这里的删除destroy要找到哪一个id，要使用where语句
+        where:{
+          [Op.and]:[
+            {id:note.id},
+            {uid:note.uid},
+          ],
+        },
+      })
+      .then(function(note){
+        console.log(note,'note')
+        res.send({status:0});
+      })
+      .catch(function(){
+        res.send({status:1,errorMsg:'数据库出错'})
+      })
     }
   })
-  .then(function(notes){
-    res.send({status:0});
-  })
-  .catch(function(){
-    res.send({status:1,errorMsg:'数据库出错'})
-  })
+
 });
 
 module.exports = router;
