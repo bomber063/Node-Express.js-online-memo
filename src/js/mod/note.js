@@ -103,21 +103,21 @@ Note.prototype = {
 
     //contenteditable没有 change 事件，所有这里做了模拟通过判断元素内容变动，执行 save
     $noteCt.on('focus', function() {//聚焦的时候触发
-      if($noteCt.html()=='input here') $noteCt.html('');//前面设置的默认内容是input here，如果内容是默认的input here就在聚焦的时候清空内容
-      $noteCt.data('before', $noteCt.html());//jQuery.data()函数在匹配元素上存储任意相关数据 或 返回匹配的元素集合中的第一个元素的给定名称的数据存储的值。
+      if($noteCt.text()=='input here') $noteCt.text('');//前面设置的默认内容是input here，如果内容是默认的input here就在聚焦的时候清空内容
+      $noteCt.data('before', $noteCt.text());//jQuery.data()函数在匹配元素上存储任意相关数据 或 返回匹配的元素集合中的第一个元素的给定名称的数据存储的值。
       // https://www.jquery123.com/data/
       //这里就是把元素$noteCt里面设置一个临时key是before，它的值是$noteCt.html()
       // .html()获取集合中第一个匹配元素的HTML内容，https://www.jquery123.com/html/
       // console.log($noteCt.data('before'),'$noteCt.data(before)')
     }).on('blur paste', function() {//当失去焦点(也就是输入完成后离开输入框)或者粘贴的是时候触发
       // console.log('失去焦点或者粘贴')
-      if( $noteCt.data('before') != $noteCt.html() ) {//如果before这个临时key里面的值不等于$noteCt.html()那就按照下面的代码把这个before临时key设置为$noteCt.html()
-        $noteCt.data('before',$noteCt.html());//把临时before这个key设置为$noteCt.html()
+      if( $noteCt.data('before') != $noteCt.text() ) {//如果before这个临时key里面的值不等于$noteCt.html()那就按照下面的代码把这个before临时key设置为$noteCt.html()
+        $noteCt.data('before',$noteCt.text());//把临时before这个key设置为$noteCt.html()
         self.setLayout();//触发瀑布流事件效果
         if(self.id){//如果存在id就是执行编辑事件
-          self.edit($noteCt.html())
+          self.edit($noteCt.text())
         }else{//不存在id就执行增加事件
-          self.add($noteCt.html())
+          self.add($noteCt.text())
         }
       }
     });

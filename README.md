@@ -3406,9 +3406,18 @@ var NoteManager = require('mod/note-manager.js');
 ```
 * 先记录一下，**不知道是不是因为index.js是入口文件所以可以这么引入，还是说NoteManager.js本身是一个立即执行函数，所以不能这么引入在非入口文件呢？**
 * **经过测试，我把立即执行函数返回一个对象修改为一个普通函数还是不能在别的组件获取到，只能在入口index.js文件获取到**
-### 在便签中输入空格会转义
+### 在便签中输入空格会转义的bug修复
 * 不知道是不是note.js文件里面的html()的原因，后续把它修改为text()在测试一下
 * [Jquery中html()、text()、val()的使用和区别](https://www.cnblogs.com/dbj66/p/8465958.html)
+* 经过测试，我把note.js里面的`$noteCt.html()`都修改为`$noteCt.text()`这样在保存后数据库里面就不会转码了
+* `$noteCt.html()`的空格和大于小于号显示效果**会转码**
+```
+&nbsp; &nbsp;324234&nbsp; &nbsp;23423423&lt;&gt;&lt;&gt;&lt;&gt;&lt;
+```
+* `$noteCt.text()`的空格和大于小于号显示效果**不会转码**
+```
+safasd a da we<><><><>
+```
 ### 不刷新触发add之后同样的便签修改不会触发edit
 * 不刷新触发add之后同样的便签修改不会触发edit,还是会触发add，要刷新之后才会在后台保存并有id，这时候才会触发edit。这个bug我不知道怎么修改。我是考了使用一个刷新API，但是刷新后会导致add的toast弹出不能被看到。         
 ```js 
