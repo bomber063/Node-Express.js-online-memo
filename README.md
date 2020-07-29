@@ -4319,6 +4319,7 @@ router.post('/notes/add', function(req, res, next) {
   }
 ```
 * index.js文件里面增加滑动到顶部的代码,具体参考[Jquery 实现页面滚动到顶端](https://www.cnblogs.com/oiliu/p/4735928.html)
+* 用到的API是[animate](https://www.jquery123.com/animate/)和[scrollTop()](https://www.jquery123.com/scrollTop/)
 ```js
 $('.btn-toTop').on('click', function(){
   console.log('111')
@@ -4331,6 +4332,11 @@ $('.btn-toTop').on('click', function(){
 * 经过webpack打包后CSS文件全都在 index.js文件里面包括了，所以之前的引入css可以删除了，之前可能是测试某些东西用的,在index.ejs里面注释这句代码
 ```html
     <!-- <link rel="stylesheet" href="./css/index.css"> -->
+```
+## 前面删除了public的css文件后发现出错了
+* **检查到了晚上三点终于发现，是这个代码的问题，在index.ejs文件里面把这句代码注释就可以了，可能是如果有class就必须要给他对应的css编码吧。其实是用不了这个class的**
+```html
+    <!-- <div class="stars"></div> -->
 ```
 ## 其他
 ### 小技巧安装nrm切换源
