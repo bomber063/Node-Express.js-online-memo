@@ -4327,6 +4327,11 @@ $('.btn-toTop').on('click', function(){
 ```
 ### 增加删除的icon
 * 具体在icon.less文件里面。
+### 经过webpack打包后CSS文件全都在 index.js文件里面包括了
+* 经过webpack打包后CSS文件全都在 index.js文件里面包括了，所以之前的引入css可以删除了，之前可能是测试某些东西用的,在index.ejs里面注释这句代码
+```html
+    <!-- <link rel="stylesheet" href="./css/index.css"> -->
+```
 ## 其他
 ### 小技巧安装nrm切换源
 * [npr文档](https://www.npmjs.com/package/nrm)
