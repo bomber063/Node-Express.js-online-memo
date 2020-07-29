@@ -4046,7 +4046,7 @@ router.post('/notes/delete', function(req, res, next) {
 ```
 * 如果不在编辑和删除里面增加uid这个属性也是可以通过对应的id找到的，因为id也是唯一的。只要登录也可以编辑和删除，**但是问题是凡是登录的用户可以删除任何信息，只要登录的用户可以发送AJAX请求，那么登陆状态请求生效就会删除别人的信息，如果有uid那么安全性就可以保证，因为uid是登陆用户的信息（每个用户不同，别人也不知道你的用户uid是什么），id是自动创建的编码（按照1234这样的顺序创建编码，这个就很好猜到）**
 * 后端对安全性和后门比较需要下功夫。前端这一块就做的简单一点。不用管太多，这个安全性的责任主要在后端，不在前端。
-* 增加session来控制不可以删除别人创建的便利贴(**不过这个功能基本用不到，因为后面还设置了登陆后别人创建的便利贴你自己看不到**)
+* 增加session来控制不可以删除别人创建的便利贴(**不过这个功能基本用不到，因为后面还设置了登陆后别人创建的便利贴你自己看不到，所以我后面把这个功能在代码中注释掉了**)
 ```js
 router.post('/notes/delete', function(req, res, next) {
   if(!req.session.user){
@@ -4184,6 +4184,149 @@ router.get('/notes', function(req, res, next) {
 * 复杂的网站只是逻辑更多一些，内容也就是涉及打上面的知识。
 * 前后端分离，页面逻辑由前端做，后端提供标准的接口。相当于把view层拆分出来由前端去管理，那么前端就不需要把后端的数据库网站搭起来，只需要连接后端提供的接口即可。
 * 后续可以增加HTML5的API 全屏效果，还有不用瀑布流，但是记住便利贴的位置，下次刷新还在这个位置。还可以增加聊天，弹幕和音乐等功能。
+## 优化CSS和UI，增加时间和用户显示
+### 增加时间显示
+* 因为后端sqlite不能用修改时间参数。不能显示北京时间，报错如下
+```js
+Error: Setting a custom timezone is not supported by SQLite, dates are always returned as UTC. Please remove the custom timezone parameter.
+```
+* 所以我在note.js文件中创建时间函数
+```js
+  getTime(){
+    var myDate = new Date();
+    function getNow(s) {
+      return s < 10 ? '0' + s: s;
+      }
+    var year = myDate.getFullYear(); //获取当前年
+    var month = myDate.getMonth() + 1; //获取当前月
+    var date = myDate.getDate(); //获取当前日
+    var Hours = myDate.getHours(); //声明变量Hours 获取当前时间的时
+    var Minutes = myDate.getMinutes(); //声明变量Minutes 获取当前时间的分
+    var Seconds = myDate.getSeconds(); //声明变量Seconds  获取当前时间的秒
+    let createTime = year + "年" + month + "月" + date + "日"+' '+getNow(Hours)+':'+getNow(Minutes)+':'+getNow(Seconds)
+    return createTime
+  },
+```
+* 后端也在初始化数据的时候初始化这个事件的属性。**另外这个因为新增后不刷新的话，数据并不是后端返回的数据，所以这里同时增加`window.location.reload()`刷新页面后就是获取到后端数据了，防止出错**
+```js
+// 后端数据文件node.js里面初始化
+    createTime: Sequelize.STRING
+```
+* 在增加路径`/notes/add`的时候把这个时间传给后端。
+```js
+  add: function (msg,createTime){
+    console.log('addd...');
+    var self = this;
+    $.post('/api/notes/add', {note: msg , createTime:createTime})//增加时间参数发请求给后端
+      .done(function(ret){
+        if(ret.status === 0){
+          Toast('add success');
+          setTimeout(() => {
+            window.location.reload()//如果不刷新，那么同样的note上面修改会导致增加事件而不是编辑事件。
+          },1800);
+        }else{
+          self.$note.remove();
+          Event.fire('waterfall')
+          Toast(ret.errorMsg);
+        }
+      });
+  },
+```
+* 让后端保存这个时间
+```js
+router.post('/notes/add', function(req, res, next) {
+  // 对于post请求是req.body,如果是get请求就是req.query
+  // http://expressjs.com/en/5x/api.html#req.body
+  // http://expressjs.com/en/5x/api.html#req.query
+  if(!req.session.user){
+    return res.send({status:1,errorMsg:'请先登录'})
+  }
+  Note.create({text:req.body.note,createTime:req.body.createTime,username:req.session.user.username,uid:req.session.user.id})//增加时间属性保存在数据库
+  Note.findAll({raw:true})
+  .then(function(notes){
+    res.send({status:0,data:notes})
+  })
+  .catch(function(){
+    res.send({status:1,errorMsg:'数据库出错'})
+  })
+});
+```
+### 增加小圆角
+* 文件note.less,参考这个[UI](https://codepen.io/shubhamc_007/pen/JwMbEd?editors=0010)
+```css
+    .note-ct{
+      border-bottom-left-radius: 5px 5px;
+      border-bottom-right-radius: 20px 20px;
+      padding: 10px;
+      background-color: #efb04e;
+      outline: none;
+      overflow:hidden;
+      position: relative;
+      min-height:100px;
+    }
+
+    .note-ct:before{
+      content: "";
+      position: absolute;
+      bottom: -8px;
+      right: -8px;      
+      border-radius:5px;
+      border-style: solid;
+      border-color: #fff0 #fff0 #ffffffe6 #ffffffe6;
+      background: #fff;
+      -webkit-box-shadow:0px 0px 15px 4px #0c0f4180;
+      -moz-box-shadow: 0px 0px 15px 4px #0c0f4180;
+      box-shadow: 0px 0px 15px 4px #0c0f4180;
+      /* Firefox 3.0 damage limitation */
+      display: block; 
+      width: 20px; 
+      height:20px;
+      opacity: 1;
+    }
+```
+### 动态圆形按钮，用户增加便利贴和上滑到顶部
+* index.less文件,参考这个[UI](https://codepen.io/shubhamc_007/pen/JwMbEd?editors=0010)
+```less
+  .add-note{
+    width:50px;
+    height:50px;
+    border-radius:50%;
+    border:none;
+    background-color:#6039e0;
+    color:#fff;
+    position:fixed;
+    right: 20px;
+    bottom:40px;
+    box-shadow: 0px 0px 0px 4px #6039e066;
+    animation: pulse 2s infinite;
+    box-shadow:none;
+    cursor:pointer;
+  }
+  .btn-toTop{
+    width:50px;
+    height:50px;
+    border-radius:50%;
+    border:none;
+    background-color:#6039e0;
+    color:#fff;
+    position:fixed;
+    right: 20px;
+    bottom:100px;
+    box-shadow: 0px 0px 0px 4px #6039e066;
+    animation: pulse 2s infinite;
+    box-shadow:none;
+    cursor:pointer;
+  }
+```
+* index.js文件里面增加滑动到顶部的代码,具体参考[Jquery 实现页面滚动到顶端](https://www.cnblogs.com/oiliu/p/4735928.html)
+```js
+$('.btn-toTop').on('click', function(){
+  console.log('111')
+  $('html, body').animate({ scrollTop: 0 }, 1000,'linear')
+})
+```
+### 增加删除的icon
+* 具体在icon.less文件里面。
 ## 其他
 ### 小技巧安装nrm切换源
 * [npr文档](https://www.npmjs.com/package/nrm)

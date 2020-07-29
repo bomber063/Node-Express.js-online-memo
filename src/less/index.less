@@ -1,6 +1,38 @@
 html,body{
     margin: 0;
     height: 100%;
+    background:#1c1d24;
+  }
+
+  .add-note{
+    width:50px;
+    height:50px;
+    border-radius:50%;
+    border:none;
+    background-color:#6039e0;
+    color:#fff;
+    position:fixed;
+    right: 20px;
+    bottom:40px;
+    box-shadow: 0px 0px 0px 4px #6039e066;
+    animation: pulse 2s infinite;
+    box-shadow:none;
+    cursor:pointer;
+  }
+  .btn-toTop{
+    width:50px;
+    height:50px;
+    border-radius:50%;
+    border:none;
+    background-color:#6039e0;
+    color:#fff;
+    position:fixed;
+    right: 20px;
+    bottom:100px;
+    box-shadow: 0px 0px 0px 4px #6039e066;
+    animation: pulse 2s infinite;
+    box-shadow:none;
+    cursor:pointer;
   }
   ul,li{
     margin: 0;
@@ -78,6 +110,32 @@ html,body{
   }
   
   
+  @-webkit-keyframes pulse {
+    0% {
+      -webkit-box-shadow: 0 0 0 0 rgba(96,57,224, 0.4);
+    }
+    70% {
+        -webkit-box-shadow: 0 0 0 10px rgba(96,57,224, 0);
+    }
+    100% {
+        -webkit-box-shadow: 0 0 0 0 rgba(96,57,224, 0);
+    }
+  }
+  @keyframes pulse {
+    0% {
+      -moz-box-shadow: 0 0 0 0 rgba(96,57,224, 0.4);
+      box-shadow: 0 0 0 0 rgba(96,57,224, 0.4);
+    }
+    70% {
+        -moz-box-shadow: 0 0 0 10px rgba(96,57,224, 0);
+        box-shadow: 0 0 0 10px rgba(96,57,224, 0);
+    }
+    100% {
+        -moz-box-shadow: 0 0 0 0 rgba(96,57,224, 0);
+        box-shadow: 0 0 0 0 rgba(96,57,224, 0);
+    }
+  }
+
   @keyframes move-twink-back {
       from {background-position:0 0;}
       to {background-position:-10000px 5000px;}
@@ -95,10 +153,10 @@ html,body{
     display:block;
   }
   
-  .stars {//这里的背景图片已经没有了
-    background:#000 url(https://s1.ax1x.com/2020/07/17/UyUuFO.png) repeat top center;
-    z-index:-2;
-  }
+  // .stars {//这里的背景图片已经没有了
+  //   background:#000 url(https://s1.ax1x.com/2020/07/17/UyUuFO.png) repeat top center;
+  //   z-index:-2;
+  // }
   
   // .twinkling{//这里的背景图片已经没有了
   //   background:transparent url(https://s1.ax1x.com/2020/07/17/UyGZct.gif) repeat top center;

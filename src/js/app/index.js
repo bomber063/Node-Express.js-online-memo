@@ -7,7 +7,7 @@ var WaterFall=require('../mod/waterfall')
 // var Note=require('../mod/note').Note
 var NoteManager = require('mod/note-manager.js').NoteManager;
 // console.log(NoteManager,'入口文件index.js里面能够获取到note-manager')
-// console.log(Note,'Note')
+// console.log(Note,'入口的Note')
 
 // Toast('hello world')
 
@@ -27,6 +27,16 @@ $('.add-note').on('click', function() {//首页点击添加按钮的时候执行
     // id: 1,   
   // context: 'i1' 
 // }).add()
+})
+
+// function pageScroll() { 
+//   window.scrollBy(0,-10); 
+//   scrolldelay = setTimeout('pageScroll()',100); 
+//   } 
+
+$('.btn-toTop').on('click', function(){
+  console.log('111')
+  $('html, body').animate({ scrollTop: 0 }, 1000,'linear')
 })
 
 

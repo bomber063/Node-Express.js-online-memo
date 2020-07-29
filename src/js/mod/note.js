@@ -1,4 +1,5 @@
 require('less/note.less');
+require('less/icon.less')
 
 var NoteManager = require('mod/note-manager.js').NoteManager;
 
@@ -18,6 +19,7 @@ var Event = require('mod/event.js');//主要用到绑定事件和触发事件用
 function Note(opts){//Note本身是一个构造函数
   this.initOpts(opts);
   this.createNote();
+  this.getTime()
   this.setStyle();
   this.bindEvent();
 }
@@ -36,7 +38,8 @@ Note.prototype = {
   defaultOpts: {
     id: '',   //Note的 id
     $ct: $('#content').length>0?$('#content'):$('body'),  //默认存放 Note 的容器
-    context: 'input here'  //Note 的内容
+    context: 'input here',  //Note 的内容
+    time: ""
   },
 
   initOpts: function (opts) {
@@ -53,16 +56,44 @@ Note.prototype = {
     }
   },
 
+  getTime(){
+    var myDate = new Date();
+    function getNow(s) {
+      return s < 10 ? '0' + s: s;
+      }
+    var year = myDate.getFullYear(); //获取当前年
+    var month = myDate.getMonth() + 1; //获取当前月
+    var date = myDate.getDate(); //获取当前日
+    var Hours = myDate.getHours(); //声明变量Hours 获取当前时间的时
+    var Minutes = myDate.getMinutes(); //声明变量Minutes 获取当前时间的分
+    var Seconds = myDate.getSeconds(); //声明变量Seconds  获取当前时间的秒
+    let createTime = year + "年" + month + "月" + date + "日"+' '+getNow(Hours)+':'+getNow(Minutes)+':'+getNow(Seconds)
+    return createTime
+  },
+
+
   createNote: function () {
-    var tpl =  '<div class="note">'
-              + '<div class="note-head"><span class="username"></span><span class="delete">&times;</span></div>'
-              + '<div class="note-ct" contenteditable="true"></div>'
-              +'</div>';
+    var tpl =  `<div class="note">
+                  <div class="note-head">
+                      创建者是:<span class="username"></span>
+                      <br>
+                      创建时间是:<span class="createTime">2018年1月1日</span>
+                      <div class="delete">
+                        <i class="iconfont icon-shanchu1"></i>
+                      </div>
+                  </div>
+                  
+                  <div class="note-ct" contenteditable="true">
+
+                  </div>
+
+                </div>`;
               // 全局属性 contenteditable  是一个枚举属性，表示元素是否可被用户编辑。 如果可以，浏览器会修改元素的部件以允许编辑。https://developer.mozilla.org/zh-CN/docs/Web/HTML/Global_attributes/contenteditable
     this.$note = $(tpl);
     this.$note.find('.note-ct').text(this.opts.context);//find() 方法返回被选元素的后代元素，一路向下直到最后一个后代 https://www.runoob.com/jquery/jquery-traversing-descendants.html
     // text() 方法设置或返回被选元素的文本内容https://www.runoob.com/jquery/html-text.html
     this.$note.find('.username').text(this.opts.username);
+    this.$note.find('.createTime').text(this.opts.time || this.getTime);
     this.opts.$ct.append(this.$note);//append() 方法在被选元素的结尾插入指定内容
     //https://www.runoob.com/jquery/html-append.html
     if(!this.id)  this.$note.css('bottom', '100px');  //如果是不是新的的，那么就没有id传入，这样这个note的高度可以接近最底部100px
@@ -117,7 +148,7 @@ Note.prototype = {
         if(self.id){//如果存在id就是执行编辑事件
           self.edit($noteCt.text())
         }else{//不存在id就执行增加事件
-          self.add($noteCt.text())
+          self.add($noteCt.text(),self.getTime())
         }
       }
     });
@@ -179,10 +210,10 @@ Note.prototype = {
     })
   },
 
-  add: function (msg){
+  add: function (msg,createTime){
     console.log('addd...');
     var self = this;
-    $.post('/api/notes/add', {note: msg})//新增的需要提供内容。如果成功下面只是弹出toast提醒你成功了
+    $.post('/api/notes/add', {note: msg , createTime:createTime})//新增的需要提供内容。如果成功下面只是弹出toast提醒你成功了
       .done(function(ret){
         if(ret.status === 0){
           // NoteManager.add(ret)
@@ -190,7 +221,9 @@ Note.prototype = {
         //     username:ret.data[ret.data.length-1].username
         // });
           Toast('add success');
-          // window.location.reload()//如果不刷新，那么同样的note上面修改会导致增加事件而不是编辑事件。
+          setTimeout(() => {
+            window.location.reload()//如果不刷新，那么同样的note上面修改会导致增加事件而不是编辑事件。
+          },1800);
         }else{
           self.$note.remove();
           // // remove()从DOM中删除所有匹配的元素。 https://jquery.cuishifeng.cn/remove.html

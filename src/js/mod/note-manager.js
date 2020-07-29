@@ -2,7 +2,7 @@ var Toast = require('./toast.js').Toast;
 var Note = require('./note.js').Note;
 // var Toast = require('./toast.js').Toast;
 var Event = require('mod/event.js');
-// console.log(Note,'Note')
+// console.log(Note,'note-mananger里面的Note')
 
 
 var NoteManager = (function(){
@@ -21,7 +21,8 @@ var NoteManager = (function(){
               new Note({//前端获取到后端的数据后去创建note
                 id: article.id,
                 context: article.text,
-                username: article.username
+                username: article.username,
+                time: article.createTime
               });
           });
 

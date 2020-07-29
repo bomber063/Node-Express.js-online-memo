@@ -53,7 +53,8 @@ const Note = sequelize.define('note', {//定义一个名字叫做note的表结�
     username:{
         type: Sequelize.STRING,
         allowNull: true
-    }
+    },
+    createTime: Sequelize.STRING
 
 
     // omitNull:false
@@ -90,11 +91,11 @@ const Note = sequelize.define('note', {//定义一个名字叫做note的表结�
     
 // })
 // Note.sync({ force: true })
-     Note.create(
-         { text: '新建的数据',
-            uid:555,
-        },
-     )
+    //  Note.create(
+    //      { text: '新建的数据',
+    //         uid:555,
+    //     },
+    //  )
 
 // Note.findAll({
 //     raw:true
