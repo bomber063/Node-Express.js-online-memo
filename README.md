@@ -4113,8 +4113,68 @@ else{//如果没有登陆就显示所有的便利贴。
 });
 ```
 * 以上是自己写的代码，但是比较乱，所以后面看了老师代码后稍微优化了
-## 对比老师的代码后稍微把代码优化了以下
-* 
+## 对比老师的代码后稍微把代码优化了notes路径的后端代码
+* 主要时候路径`/notes`
+* 修改前
+```js
+router.get('/notes', function(req, res, next) {
+if(req.session.user&&req.session.user.id){//如果req.session.user存在说明已经登陆，就显示登陆部分的便利贴
+  Note.findAll({raw:true,
+    where:{
+      uid:req.session.user.id
+    }
+  })
+    .then(function(notes){
+      console.log(notes)
+      res.send({status:0,data:notes})
+    })
+    .catch(function(){
+      res.send({status:1,errorMsg:'数据库出错'})
+    })
+    // console.log('/notes');
+}
+else{//如果没有登陆就显示所有的便利贴。
+  Note.findAll({raw:true})
+    .then(function(notes){
+      console.log(notes)
+      res.send({status:0,data:notes})
+    })
+    .catch(function(){
+      res.send({status:1,errorMsg:'数据库出错'})
+    })
+  }
+});
+```
+* 修改后简介很多
+```js
+router.get('/notes', function(req, res, next) {
+  var opts={raw:true}
+  if(req.session&&req.session.user){//如果req.session.user存在说明已经登陆，就显示登陆部分的便利贴
+    opts.where={uid:req.session.user.id}
+  }
+  Note.findAll(opts)
+  .then(function(notes){
+    console.log(notes)
+    res.send({status:0,data:notes})
+  })
+  .catch(function(){
+    res.send({status:1,errorMsg:'数据库出错'})
+  })
+});
+```
+## 小结
+* 我们使用了组件化的方式去写代码。
+* 使用了事件发布订阅模式去实现一些功能。
+* 使用webpack去打包，去实现代码的模块化。
+* less去写CSS
+* 使用了npm script使我们的整个启动执行更方便。
+* 后端用了express。了解了整个网站的架构。、
+* MVC的概念。
+* 模板引擎的简单使用
+* 中间件，路由，模型，数据库，cookie，session，登录注册等知识
+* 复杂的网站只是逻辑更多一些，内容也就是涉及打上面的知识。
+* 前后端分离，页面逻辑由前端做，后端提供标准的接口。相当于把view层拆分出来由前端去管理，那么前端就不需要把后端的数据库网站搭起来，只需要连接后端提供的接口即可。
+* 后续可以增加HTML5的API 全屏效果，还有不用瀑布流，但是记住便利贴的位置，下次刷新还在这个位置。还可以增加聊天，弹幕和音乐等功能。
 ## 其他
 ### 小技巧安装nrm切换源
 * [npr文档](https://www.npmjs.com/package/nrm)

@@ -17,33 +17,18 @@ var Note=require('../model/note').Note
 /* 前端发的请求都会到这里对应的路由去执行响应的函数 */
 /* 获取所有notes */
 router.get('/notes', function(req, res, next) {
-if(req.session.user&&req.session.user.id){//如果req.session.user存在说明已经登陆，就显示登陆部分的便利贴
-  Note.findAll({raw:true,
-    where:{
-      uid:req.session.user.id
-    }
+  var opts={raw:true}
+  if(req.session&&req.session.user){//如果req.session.user存在说明已经登陆，就显示登陆部分的便利贴
+    opts.where={uid:req.session.user.id}
+  }
+  Note.findAll(opts)
+  .then(function(notes){
+    console.log(notes)
+    res.send({status:0,data:notes})
   })
-    .then(function(notes){
-      console.log(notes)
-      res.send({status:0,data:notes})
-    })
-    .catch(function(){
-      res.send({status:1,errorMsg:'数据库出错'})
-    })
-    // console.log('/notes');
-}
-else{//如果没有登陆就显示所有的便利贴。
-  Note.findAll({raw:true})
-    .then(function(notes){
-      console.log(notes)
-      res.send({status:0,data:notes})
-    })
-    .catch(function(){
-      res.send({status:1,errorMsg:'数据库出错'})
-    })
-    // console.log('/notes');
-  // });
-    }
+  .catch(function(){
+    res.send({status:1,errorMsg:'数据库出错'})
+  })
 });
 
 
