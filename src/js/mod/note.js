@@ -101,7 +101,8 @@ Note.prototype = {
   },
 
   setStyle: function () {
-    var color = this.colors[Math.floor(Math.random()*6)];//Math.floor 返回小于或等于一个给定数字的最大整数。Math.floor() === 向下取整
+    var color = this.colors[4]
+    // var color = this.colors[Math.floor(Math.random()*6)];//Math.floor 返回小于或等于一个给定数字的最大整数。Math.floor() === 向下取整
     // https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Math/floor
     //Math.random() 函数返回一个浮点,  伪随机数在范围从0到小于1 ,https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Math/random
     //因为有6种颜色所以*6

@@ -4333,11 +4333,69 @@ $('.btn-toTop').on('click', function(){
 ```html
     <!-- <link rel="stylesheet" href="./css/index.css"> -->
 ```
-## 前面删除了public的css文件后发现出错了
+### 前面删除了public的css文件后发现出错了
 * **检查到了晚上三点终于发现，是这个代码的问题，在index.ejs文件里面把这句代码注释就可以了，可能是如果有class就必须要给他对应的css编码吧。其实是用不了这个class的**
 ```html
     <!-- <div class="stars"></div> -->
 ```
+### 增加和顶部的icon,旋转效果，随机颜色取消
+* 旋转效果参考的[UI来自这里](https://codepen.io/engza/pen/BwLqLR),在note.less里面增加代码
+```less
+.note{
+    position: absolute;;
+    color: #333;
+    width: 250px;
+    margin: 20px 10px;
+    transition: all 0.5s;
+    transform: rotate(0deg);
+    border-top-left-radius: 5px 5px;
+    border-top-right-radius: 5px 5px;
+    border-bottom-left-radius: 5px 5px;
+    border-bottom-right-radius: 20px 20px;
+    
+    -webkit-transform: rotate(0deg);
+      &:hover {
+        transform: rotate(2deg);
+      }
+    &:nth-child(odd) {
+      transform: rotate(2deg);
+      // position: relative;
+      // top: .1875rem;
+      background: #cfc;
+      &:hover {
+        transform: rotate(0deg);
+      }
+    }
+
+    &:nth-child(3n) {
+      transform: rotate(-1.5deg);
+      // position: relative;
+      // top: -.1875rem;
+      &:hover {
+        transform: rotate(0deg);
+      }
+    }
+    &:nth-child(3n-1) {
+      transform: rotate(2.5deg);
+      // position: relative;
+      // top: -.3125rem;
+      background: #ccf;
+      &:hover {
+        transform: rotate(0deg);
+      }
+    }
+```
+* 增加和顶部icon,在icon.less文件里面
+```less
+.icon-shang:before {
+  content: "\e600";
+}
+
+.icon-zengjia:before {
+  content: "\e619";
+}
+```
+* 另外note的随机颜色我改成只显示一种颜色了。
 ## 其他
 ### 小技巧安装nrm切换源
 * [npr文档](https://www.npmjs.com/package/nrm)
