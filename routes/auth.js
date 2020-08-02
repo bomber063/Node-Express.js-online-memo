@@ -38,7 +38,7 @@ passport.deserializeUser(function(id, done) {//官网的反序列化代码，用
 passport.use(new GitHubStrategy({
     clientID: 'e89343001d0334689ed3',
     clientSecret: 'b51bac623a02bfa32d9a3a6a6938535af0e18f9f',
-    callbackURL: "http://127.0.0.1:8080/auth/github/callback",//向github的登陆入口去发送请求，然后把前面的clientID和clientSecret传递过去，那么github就知道是哪个应用发的请求。github就会向请求方传送一个密钥，会调用这个callback回来
+    callbackURL: "http://47.91.156.35:3030//auth/github/callback",//向github的登陆入口去发送请求，然后把前面的clientID和clientSecret传递过去，那么github就知道是哪个应用发的请求。github就会向请求方传送一个密钥，会调用这个callback回来
     // proxy:true
   },
   function(accessToken, refreshToken, profile, done) {

@@ -4418,6 +4418,11 @@ $('.btn-toTop').on('click', function(){
 * [如何选择jQuery中的最后一个子元素？](https://www.imooc.com/wenda/detail/597950)
 * [jquery 有没有 scrollHeight来获取实际的高度](https://zhidao.baidu.com/question/1925237225722830587.html)
 * 服务器设置[看这里](https://xiedaimala.com/tasks/8a355066-791a-4597-a695-3fc403354bbb/text_tutorials/c3f0b185-8bb0-4d2d-be46-257e25e3701d)
+## 完成
+* 最后上传到服务器上之后需要修改github上面的回调地址和auth.js里面的回调地址。
+```js
+callbackURL: "http://47.91.156.35:3030//auth/github/callback"
+```
 ## 其他
 ### npm 如何查看一个包的版本信息？
 * [npm 如何查看一个包的版本信息？](https://blog.csdn.net/cvper/article/details/79543262?utm_source=blogxgwz15
