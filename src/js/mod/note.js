@@ -78,6 +78,9 @@ Note.prototype = {
                       创建者是:<span class="username"></span>
                       <br>
                       创建时间是:<span class="createTime">2018年1月1日</span>
+                      <div class="done">
+                        <i class="iconfont icon-wancheng"></i>
+                      </div>
                       <div class="delete">
                         <i class="iconfont icon-shanchu1"></i>
                       </div>
@@ -90,6 +93,9 @@ Note.prototype = {
                 </div>`;
               // 全局属性 contenteditable  是一个枚举属性，表示元素是否可被用户编辑。 如果可以，浏览器会修改元素的部件以允许编辑。https://developer.mozilla.org/zh-CN/docs/Web/HTML/Global_attributes/contenteditable
     this.$note = $(tpl);
+
+    this.$note[0].scrollHeight
+    // console.log('window.scrollY',window.scrollY)
     this.$note.find('.note-ct').text(this.opts.context);//find() 方法返回被选元素的后代元素，一路向下直到最后一个后代 https://www.runoob.com/jquery/jquery-traversing-descendants.html
     // text() 方法设置或返回被选元素的文本内容https://www.runoob.com/jquery/html-text.html
     this.$note.find('.username').text(this.opts.username);
@@ -102,12 +108,16 @@ Note.prototype = {
 
   setStyle: function () {
     var color = this.colors[4]
+    var colorFirst= this.colors[5]
+
     // var color = this.colors[Math.floor(Math.random()*6)];//Math.floor 返回小于或等于一个给定数字的最大整数。Math.floor() === 向下取整
     // https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Math/floor
     //Math.random() 函数返回一个浮点,  伪随机数在范围从0到小于1 ,https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Math/random
     //因为有6种颜色所以*6
-    this.$note.find('.note-head').css('background-color', color[0]);//把头部颜色设置为第一个选项
-    this.$note.find('.note-ct').css('background-color', color[1]);//把内容的颜色设置为第二个选项
+    // this.$note.find('.note-head').css('background-color', color[0]);//把头部颜色设置为第一个选项
+    // this.$note.find('.note-ct').css('background-color', color[1]);//把内容的颜色设置为第二个选项
+    // this.$note.find('.note.addfirst .note-head').css('background-color', colorFirst[0]);//把头部颜色设置为第一个选项
+    // this.$note.find('.note.addfirst .note-ct').css('background-color', colorFirst[1]);//把内容的颜色设置为第二个选项
   },
 
   setLayout: function(){//这个的作用是用于失去焦点及粘贴后触发瀑布流效果
@@ -128,10 +138,25 @@ Note.prototype = {
         $noteHead = $note.find('.note-head'),
         $noteCt = $note.find('.note-ct'),
         $delete = $note.find('.delete');
+        $done = $note.find('.done');
+        
 
     $delete.on('click', function(){//点击删除按钮触发删除事件
       self.delete();
     })
+
+    $done.on('click', function(){//点击删除按钮触发删除事件
+      if( $noteCt.data('before') != $noteCt.text() ) {//如果before这个临时key里面的值不等于$noteCt.html()那就按照下面的代码把这个before临时key设置为$noteCt.html()
+        $noteCt.data('before',$noteCt.text());//把临时before这个key设置为$noteCt.html()
+        // self.setLayout();//触发瀑布流事件效果
+        if(self.id){//如果存在id就是执行编辑事件
+          self.edit($noteCt.text())
+        }else{//不存在id就执行增加事件
+          self.add($noteCt.text(),self.getTime())
+        }
+      }
+      // self.add();
+    });
 
     //contenteditable没有 change 事件，所有这里做了模拟通过判断元素内容变动，执行 save
     $noteCt.on('focus', function() {//聚焦的时候触发
@@ -141,11 +166,11 @@ Note.prototype = {
       //这里就是把元素$noteCt里面设置一个临时key是before，它的值是$noteCt.html()
       // .html()获取集合中第一个匹配元素的HTML内容，https://www.jquery123.com/html/
       // console.log($noteCt.data('before'),'$noteCt.data(before)')
-    }).on('blur paste', function() {//当失去焦点(也就是输入完成后离开输入框)或者粘贴的是时候触发
+    }).on('paste ', function() {//当失去焦点(也就是输入完成后离开输入框)或者粘贴的是时候触发
       // console.log('失去焦点或者粘贴')
       if( $noteCt.data('before') != $noteCt.text() ) {//如果before这个临时key里面的值不等于$noteCt.html()那就按照下面的代码把这个before临时key设置为$noteCt.html()
         $noteCt.data('before',$noteCt.text());//把临时before这个key设置为$noteCt.html()
-        self.setLayout();//触发瀑布流事件效果
+        // self.setLayout();//触发瀑布流事件效果
         if(self.id){//如果存在id就是执行编辑事件
           self.edit($noteCt.text())
         }else{//不存在id就执行增加事件
@@ -212,7 +237,7 @@ Note.prototype = {
   },
 
   add: function (msg,createTime){
-    console.log('addd...');
+    // console.log('addd...');
     var self = this;
     $.post('/api/notes/add', {note: msg , createTime:createTime})//新增的需要提供内容。如果成功下面只是弹出toast提醒你成功了
       .done(function(ret){
@@ -223,6 +248,7 @@ Note.prototype = {
         // });
           Toast('add success');
           setTimeout(() => {
+            // $('#content').children().last().find(".done").css("display","none")
             window.location.reload()//如果不刷新，那么同样的note上面修改会导致增加事件而不是编辑事件。
           },1800);
         }else{
@@ -241,6 +267,10 @@ Note.prototype = {
     $.post('/api/notes/delete', {id: this.id})//删除需要提供删除哪一个id
       .done(function(ret){
         if(ret.status === 0){
+          $('#content').removeClass('addfirst')
+          $('.cloak').css("display","none")
+          // $('#content').children().last().find(".done").css("display","none")
+
           Toast('delete success');
           self.$note.remove();
           // remove()从DOM中删除所有匹配的元素。 https://jquery.cuishifeng.cn/remove.html

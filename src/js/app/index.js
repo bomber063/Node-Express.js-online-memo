@@ -11,6 +11,26 @@ var NoteManager = require('mod/note-manager.js').NoteManager;
 
 // Toast('hello world')
 
+
+// $(document).ready(function () { 
+//   var bsumHeight=$('html')[0].scrollHeight
+
+//   console.log($('html,body').css("height",bsumHeight),`$('html').css("height",bsumHeight)`)
+// })
+
+
+// $(function () { 
+//   var bsumHeight=parseInt(window.scrollY)+parseInt($('.cloak').css('height'))
+//   // var bsumHeight=$('.cloak')[0].scrollHeight
+//   console.log(bsumHeight)
+//   console.log($('html,body').css("height"),`$('html').css("height")`)
+
+//   $('html,body').css("height",bsumHeight)
+//   console.log($('html,body').css("height",bsumHeight),`$('html').css("height",bsumHeight)`)
+
+// });
+
+
 NoteManager.load();
 
 // var a=new Note({
@@ -35,9 +55,31 @@ $('.add-note').on('click', function() {//首页点击添加按钮的时候执行
 //   } 
 
 $('.btn-toTop').on('click', function(){
-  console.log('111')
+  // console.log('111')
   $('html, body').animate({ scrollTop: 0 }, 1000,'linear')
 })
+
+$('.add-note').on('click',function(){
+
+  //获取整个页面的高度，包括滚动条
+  // console.log($('html')[0].scrollHeight,"$('body')[0].scrollHeight")
+  // var sumHeight=parseInt(window.scrollY)+parseInt($('.cloak').css('height'))
+  var sumHeight=$('html,body')[0].scrollHeight
+  // console.log(sumHeight)
+
+  
+  $('.cloak').css("height",sumHeight)
+
+  // console.log(sumHeight,'sumHeight')
+// console.log(parseInt(window.scrollY),'parseInt(window.scrollY)')
+// console.log(parseInt($('.cloak').css('height')),"parseInt($('.cloak').css('height')")
+})
+
+
+
+// .cloak
+
+// $('.cloak').css("height",sumHeight)
 
 
 Event.on('waterfall', function(){

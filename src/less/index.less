@@ -1,7 +1,19 @@
 html,body{
     margin: 0;
     height: 100%;
-    background:#1c1d24;
+    background:#aaa;
+    // background:linear-gradient(135deg, #9236ff 0%,#f763c6 33%,#ff9292 66%,#fff7e1 100%)
+    // background:blue;
+    // box-sizing: border-box;
+  }
+
+  .cloak{
+    position: absolute;
+    // top:-20px;
+    width:100%;
+    height:100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 100;
   }
 
   .add-note{
@@ -63,34 +75,44 @@ html,body{
   
   
   #header {
-    height: 30px;
-    font-size: 12px;
+    // margin-left:5px;
+    // margin-right:5px;
+    // margin-top:5px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    // margin-top:5px;
+    height: 50px;
     background:#323846;
+    border-radius: 5px;
   
     a {
       display: block;
-      font-size: 12px;
-      margin-top: 6px;
+      font-size: 15px;
+      color:#aaa;
+      // margin-top: 6px;
     }
     
     .user-area {
+      // margin-top:6px;
       padding-right: 16px;
       float: right;
   
       li {
         float: left;
         margin-left: 5px;
+        font-size: 15px;
   
         span {
           color: #fff;
           display: block;
-          margin-top: 6px;
+          // margin-top: 6px;
         }
       }
   
       img {
         height: 18px;
-        margin-top: 5px;
+        // margin-top: 5px;
         border-radius: 50%;
       }
     }
@@ -109,7 +131,7 @@ html,body{
     }
     .login{
       float: right;
-      margin-left: 16px;
+      // margin-left: 5px;
     }
   
   
@@ -119,9 +141,11 @@ html,body{
   
   #content{
     position: relative;
-    height: -webkit-calc(100% - 30px);
-    height: calc(100% - 30px);
+    height: -webkit-calc(100% - 50px);
+    height: calc(100% - 50px);
+    // height:100%;
   }
+
   
   
   @-webkit-keyframes pulse {

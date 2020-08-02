@@ -12,7 +12,7 @@ var http = require('http');
  * Get port from environment and store in Express.
  */
 
-var port = normalizePort(process.env.PORT || '3000');
+var port = normalizePort(process.env.PORT || '3030');
 // process.env.PORT是 环境变量http://expressjs.com/en/5x/api.html#app.settings.table
 //当前进程的PORT，也就是当前提供给环境的PORT,如果没用就用3000端口，这就是默认情况下打开的就是3000
 app.set('port', port);//当字符串port设置为当前的变量port

@@ -42,11 +42,20 @@ var NoteManager = (function(){
     $.post('/api/notes/addfirst')//新增的需要提供内容。如果成功下面只是弹出toast提醒你成功了
     .done(function(ret){
       if(ret.status === 0){
-        console.log(ret)
+        // console.log(ret)
         // NoteManager.add(ret)
         new Note({//前端获取到后端的数据后去创建note
           username:ret.data
       });
+      // 新增的便利贴，居中局部，周围暗化。
+      $('#content').addClass('addfirst')
+      $('.cloak').css("display","")
+      // $('.done').css("display","")
+      $('#content').children().last().addClass('addfirst').css("display","")
+      // $('#content').children().last().find(".done").css("display","")
+      // console.log($('#content').children().last().addClass('addfirst'))
+
+
         Toast('please input content "in input here"');
         // window.location.reload()//如果不刷新，那么同样的note上面修改会导致增加事件而不是编辑事件。
       }else{

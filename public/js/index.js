@@ -561,11 +561,19 @@ var NoteManager = (function(){
     $.post('/api/notes/addfirst')//新增的需要提供内容。如果成功下面只是弹出toast提醒你成功了
     .done(function(ret){
       if(ret.status === 0){
-        console.log(ret)
+        // console.log(ret)
         // NoteManager.add(ret)
         new Note({//前端获取到后端的数据后去创建note
           username:ret.data
       });
+      $('#content').addClass('addfirst')
+      $('.cloak').css("display","")
+      // $('.done').css("display","")
+      $('#content').children().last().addClass('addfirst').css("display","")
+      // $('#content').children().last().find(".done").css("display","")
+      // console.log($('#content').children().last().addClass('addfirst'))
+
+
         Toast('please input content "in input here"');
         // window.location.reload()//如果不刷新，那么同样的note上面修改会导致增加事件而不是编辑事件。
       }else{
@@ -804,7 +812,7 @@ var WaterFall = (function(){
 var ___CSS_LOADER_API_IMPORT___ = __webpack_require__(1);
 exports = ___CSS_LOADER_API_IMPORT___(false);
 // Module
-exports.push([module.i, "@font-face {\n  font-family: \"iconfont\";\n  src: url('//at.alicdn.com/t/font_1975090_9wkrkkfmvp.eot?t=1596083610515');\n  /* IE9 */\n  src: url('//at.alicdn.com/t/font_1975090_9wkrkkfmvp.eot?t=1596083610515#iefix') format('embedded-opentype'), /* IE6-IE8 */ url('data:application/x-font-woff2;charset=utf-8;base64,d09GMgABAAAAAARQAAsAAAAACKwAAAQBAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHEIGVgCDHAqEbIQcATYCJAMQCwoABCAFhG0HRBuKB8iusCljvliCSNYWwuHQK4c998zZrn3i4Wm/fufO3LXZ90Xb/wmxpBXveDZthLJE8xChRLFEaHSv9Hf8/mreQj4IjUlyEp3Buv8S1aCQ7nBNU6CsQ46bKsqqESlU+PveAzdNh4pIMjsWappAqelO3Ky1fC3wKNG5vPMo2iAx1M9ZCMT1p/3HvdP/G+dZOJ9lucyxNeoC6uKtgY41KJACLWHsAZ7hwgQeJtBsMoeON3f2IK8kjArEHVnkkNelkTGEMJYPQxameAYu43Ifp0U81X8f/9DeoFAMKuGok9ea4qj2J/CzvFb/z6C/TsB0eSbcllGxB0jiRqjlEocZ2QOvfVKdDgJj0VQoq6v0p9j3zOuLZMx/eYSiEkOCpCP8/mjlJ5LpBD9L6RR+lmtUxObwMebwAYkFwK9OSdWw6+aWK1js1vH7rOu/P3f/97avs36adbW3zdnvvd0ungYR8d5Q2wA4Z/3RK6KwnvXW1Rpx+FabMHSjerkYozerrcuA2qvl6hU6nUJqWxMj+sSa1eTfl70enO3pzOF/Zyv0cHcnr0DlfMF916pdEDKHhhC+O1cyYmfVUhllu+K/P3ZTWA26ZvfL6baB6n4BbXCwZigR42Z7NMbbAxme9sCtprPDi/BJL0huLgETmaoSQ1GSZzOpmPG29oj/+3M+kenv91FjEsdO/nvKpP1FlpRS6DDU3zwolDaLuKLm1dVmsbJxRZENvm1tbbL0quzYm1vPxqYee2uYZacRmcND7A+zRev+D75nB1Z7jmfm+qn8kf3fIQ3VPAdL+dqC565O+7zJrNUOnXctXfo7v7FHnXlNTtWfoU3oeUdR3sqrY725rW9W0+Z/p/wTriXn6Y6i4fsbhBDCjcgkliKw71A8dXiPv9vd2L3L3wucd8+tcsoqps8ZPZBFjPk44AKEfhz/7pDSPz3E0DFxRpwmTtw4x2e7/8tI8KO13tUF6aRot3JTc/e/KiEGKfjyBW3mWyxWlumj0kk7eFxB09CDY9ljGbK11LmEsTUbipENqMa2oInfAwNT+2Fo7BA0u/ksn1pRxCFygl0aAMKiLSjmvYdqEYYm/gEG1n3B0GLgoTkf/A2ntkUm9qDAMYiTkQki86YhSHqGjfwuEFMaR518ndQHNCn7ScTS2htvAQNoGVOSo2KUMYEI1NRJMxwHmmYSi5oK8CwoMWbFQlZpYS8K8qaOsGMowGFAHJFkApGJZzIIan0G+77fBYhSNBwaU/bD2AdQSXLvhA1L1inQFomRqmxbnik2ShRVghEQaSiTjvAGE9DEiIkoCO+nADwmKCNHyBJjRdXS0kqC9cv0JdwAjbBJRokaGQODuxJniJ4qUNyKzHldabyUiiAAAAAA') format('woff2'), url('//at.alicdn.com/t/font_1975090_9wkrkkfmvp.woff?t=1596083610515') format('woff'), url('//at.alicdn.com/t/font_1975090_9wkrkkfmvp.ttf?t=1596083610515') format('truetype'), /* chrome, firefox, opera, Safari, Android, iOS 4.2+ */ url('//at.alicdn.com/t/font_1975090_9wkrkkfmvp.svg?t=1596083610515#iconfont') format('svg');\n  /* iOS 4.1- */\n}\n.iconfont {\n  font-family: \"iconfont\" !important;\n  font-size: 25px;\n  font-style: normal;\n  -webkit-font-smoothing: antialiased;\n  -moz-osx-font-smoothing: grayscale;\n}\n.icon-shang:before {\n  content: \"\\e600\";\n}\n.icon-zengjia:before {\n  content: \"\\e619\";\n}\n.icon-shanchu1:before {\n  content: \"\\e61b\";\n}\n", ""]);
+exports.push([module.i, "@font-face {\n  font-family: \"iconfont\";\n  src: url('//at.alicdn.com/t/font_1975090_7rut2hvxjf2.eot?t=1596297530391');\n  /* IE9 */\n  src: url('//at.alicdn.com/t/font_1975090_7rut2hvxjf2.eot?t=1596297530391#iefix') format('embedded-opentype'), /* IE6-IE8 */ url('data:application/x-font-woff2;charset=utf-8;base64,d09GMgABAAAAAAV4AAsAAAAAClwAAAUsAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHEIGVgCDSAqHUIY2ATYCJAMYCw4ABCAFhG0HWBvsCFGUTk6a7IckCSJEQAEAaAJIlX5jYAEHAACAIiAentZo78/Mzqm0u6TaxJMJhEgim1QShOwlkgLdS9g/1/LfAaVAqhzV8rEqEClcyMItTjZXUmVdYUg4smUPH8kBya9vsM1MkA+k5TRM1F+uwFxfpmFz6BwpPXNuJoJMzP77/+9VzZwWnBcoLu9lrPd/1tilRT0F6ikXqEBjL5AUtBWroFYDdrXrhSRcT6DbpAauk76RGQgqOGdg5LEqcxC0+ZUQZeh0VZ9ji/gIPp3pvfsBwAf19+M/xCNI0mTcja4f9YrQ8cuvZs9m5h3M50PYyi+K20lkLAGFeOUbf8Kj15d4dH/+gtcp0KtTUn7B9+Lvpd9rfzVnWmw2Lh16+X95ZEUjJKIC6WW5542GXyB65Q9VDK8CqhSmcKoWUWE0zZglgZrjNoMg1gDiE3CSKRdLQpHV3pEvDEEoklIlKnCImWo82n8vhR+V4IPsvZtqFGLZUsv1dGm6rZeRtCnGMuINNywI1UZHr948G0K160HZulanzhWtu+UGdbyW58Cmf/r65balVYxC7USlxAmMNcM009PNMrqQc/zwYVGUiIGDAKphqPv+3FJwWbhEhHMs9bzhvi+FoRIEYzQLsioONoGXGKM1LA83NFcVFbsi5zJJ6TwOWq5WCgAZpaSM54Gk1stFyO+rupODN8O9R5L/WtKV8KlRfSUHT5QMcUlb+95kUpQesW1IIylnhhuXsniUWRrvvRveARefwOsmMdI4y1LtiRxFTnGo+EwlmtPsPl7wXwdsso+rV3/MPmJlB3tFcDwCwnScKUzcc86fd6q0ruK4ZUOGllXuVtWZNKkV2Amyw/28vsmf7/yyDo/pAVvGif1a9rrfvWKXf+HcsePnj7cedK3IVuws3evV0ve9B24ZQE+RDx+qNyLME/fvR+vqT2/V9XDOgDELOtkTLpwH0+j7n/0m7ucdSxfdvr3on4DYSeCZdJtJTmZu80j23GZBUkxEk+ht7BD9+zdzmKK/fx1SEJnMzt+HL6H/2UkkxVQ9ktBGi5u5ESfjja67UZTOvRhDcMW290RrV2st7Nn7qla12sLeeLS1oorEbeGbtYK7Bh0cUHCm+al2d9rii1XPi/8u0TPG1784Mr4oVtQ9UTNW2DC/+X4+pbRiyW+vjBpV0GPpsq4FcI/CMPM9WH5WurkQNAaebaOHogeU3cUuD+1lWSaWLz4wGHs/8IiwZDOfUPZtH10VXR7sH1wWXU3utRgV3pKyk9fIaEziROzGsAbQql7I71TNw3zv6dw50/Pbo2R+tqu8VZ7DnfZ2HsyuJ5fyWv539hTwc/iiCbZ4BPY8SmzzLuotEMJ4YvtauUAt77mioP1pTldU3azTakI3n6al9LCvedFjsYlzgB4zIekwAVmnKWbhLkGjxxZUnfah26L+k3uMoDyidGHBHgNh0Ckk/X5ANuiRWbhfoDHuH1SD4YFuD6PonD1mQkXdlHCMiJhfx6pgmZIQYkgbnSJyWueo1aqq5wh11BKOhaPOVj8xCc3jAGdFjjMmYYlaBu5jbkZ03cI2tVJEYGGFMbspEpH8vigsWAYgxyiCwxAijLcOUwksJklemUGun59CyNJ0HBqy4MdwDkE51LVjMWHRGMx+YsZasC4zHStkcYyqEky6DVsMWB9FCZ2vWzDbf6sUQsCEKSmqtiYRWkqKS8Ll08ZUXgXduA+qkSJHiSZqdOh8ypmCQkzZL6tMSfM+R+FMObDhyqVULmjrEZR0DAA=') format('woff2'), url('//at.alicdn.com/t/font_1975090_7rut2hvxjf2.woff?t=1596297530391') format('woff'), url('//at.alicdn.com/t/font_1975090_7rut2hvxjf2.ttf?t=1596297530391') format('truetype'), /* chrome, firefox, opera, Safari, Android, iOS 4.2+ */ url('//at.alicdn.com/t/font_1975090_7rut2hvxjf2.svg?t=1596297530391#iconfont') format('svg');\n  /* iOS 4.1- */\n}\n.iconfont {\n  font-family: \"iconfont\" !important;\n  font-size: 15px;\n  font-style: normal;\n  -webkit-font-smoothing: antialiased;\n  -moz-osx-font-smoothing: grayscale;\n}\n.icon-wancheng:before {\n  content: \"\\e629\";\n  font-size: 20px;\n  color: red;\n}\n.icon-github:before {\n  content: \"\\e93b\";\n  font-size: 15px;\n  padding-right: 5px;\n}\n.icon-shang:before {\n  content: \"\\e600\";\n  font-size: 20px;\n}\n.icon-zengjia:before {\n  content: \"\\e619\";\n  font-size: 20px;\n}\n.icon-shanchu1:before {\n  content: \"\\e61b\";\n  font-size: 20px;\n}\n", ""]);
 // Exports
 module.exports = exports;
 
@@ -817,7 +825,7 @@ module.exports = exports;
 var ___CSS_LOADER_API_IMPORT___ = __webpack_require__(1);
 exports = ___CSS_LOADER_API_IMPORT___(false);
 // Module
-exports.push([module.i, "html,\nbody {\n  margin: 0;\n  height: 100%;\n  background: #1c1d24;\n}\n.add-note {\n  width: 60px;\n  height: 60px;\n  border-radius: 50%;\n  border: none;\n  background-color: #6039e0;\n  color: #fff;\n  position: fixed;\n  right: 20px;\n  bottom: 40px;\n  box-shadow: 0px 0px 0px 4px #6039e066;\n  animation: pulse 2s infinite;\n  box-shadow: none;\n  cursor: pointer;\n}\n.add-note .icon-zengjia {\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  height: 60px;\n}\n.btn-toTop {\n  width: 60px;\n  height: 60px;\n  border-radius: 50%;\n  border: none;\n  background-color: #6039e0;\n  color: #fff;\n  position: fixed;\n  right: 20px;\n  bottom: 130px;\n  box-shadow: 0px 0px 0px 4px #6039e066;\n  animation: pulse 2s infinite;\n  box-shadow: none;\n  cursor: pointer;\n}\n.btn-toTop .icon-shang {\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  height: 60px;\n}\nul,\nli {\n  margin: 0;\n  padding: 0;\n  list-style: none;\n}\nbody {\n  font: 14px/1.4 'Arial';\n}\na {\n  text-decoration: none;\n  color: #fff;\n}\n#header {\n  height: 30px;\n  font-size: 12px;\n  background: #323846;\n}\n#header a {\n  display: block;\n  font-size: 12px;\n  margin-top: 6px;\n}\n#header .user-area {\n  padding-right: 16px;\n  float: right;\n}\n#header .user-area li {\n  float: left;\n  margin-left: 5px;\n}\n#header .user-area li span {\n  color: #fff;\n  display: block;\n  margin-top: 6px;\n}\n#header .user-area img {\n  height: 18px;\n  margin-top: 5px;\n  border-radius: 50%;\n}\n#header .setting {\n  float: right;\n  margin-left: 9px;\n  display: none;\n}\n#header .add-note {\n  float: left;\n  margin-left: 16px;\n  border: 1px solid #fff;\n  border-radius: 4px;\n  padding: 2px 4px;\n}\n#header .login {\n  float: right;\n  margin-left: 16px;\n}\n#content {\n  position: relative;\n  height: -webkit-calc(70%);\n  height: calc(100% - 30px);\n}\n@-webkit-keyframes pulse {\n  0% {\n    -webkit-box-shadow: 0 0 0 0 rgba(96, 57, 224, 0.4);\n  }\n  70% {\n    -webkit-box-shadow: 0 0 0 10px rgba(96, 57, 224, 0);\n  }\n  100% {\n    -webkit-box-shadow: 0 0 0 0 rgba(96, 57, 224, 0);\n  }\n}\n@keyframes pulse {\n  0% {\n    -moz-box-shadow: 0 0 0 0 rgba(96, 57, 224, 0.4);\n    box-shadow: 0 0 0 0 rgba(96, 57, 224, 0.4);\n  }\n  70% {\n    -moz-box-shadow: 0 0 0 15px rgba(96, 57, 224, 0);\n    box-shadow: 0 0 0 15px rgba(96, 57, 224, 0);\n  }\n  100% {\n    -moz-box-shadow: 0 0 0 0 rgba(96, 57, 224, 0);\n    box-shadow: 0 0 0 0 rgba(96, 57, 224, 0);\n  }\n}\n@keyframes move-twink-back {\n  from {\n    background-position: 0 0;\n  }\n  to {\n    background-position: -10000px 5000px;\n  }\n}\n.stars,\n.twinkling {\n  position: absolute;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  width: 100%;\n  height: 100%;\n  display: block;\n}\n", ""]);
+exports.push([module.i, "html,\nbody {\n  margin: 0;\n  height: 100%;\n  background: #aaa;\n}\n.cloak {\n  position: absolute;\n  width: 100%;\n  height: 100%;\n  background: rgba(0, 0, 0, 0.5);\n  z-index: 100;\n}\n.add-note {\n  width: 60px;\n  height: 60px;\n  border-radius: 50%;\n  border: none;\n  background-color: #6039e0;\n  color: #fff;\n  position: fixed;\n  right: 20px;\n  bottom: 40px;\n  box-shadow: 0px 0px 0px 4px #6039e066;\n  animation: pulse 2s infinite;\n  box-shadow: none;\n  cursor: pointer;\n}\n.add-note .icon-zengjia {\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  height: 60px;\n}\n.btn-toTop {\n  width: 60px;\n  height: 60px;\n  border-radius: 50%;\n  border: none;\n  background-color: #6039e0;\n  color: #fff;\n  position: fixed;\n  right: 20px;\n  bottom: 130px;\n  box-shadow: 0px 0px 0px 4px #6039e066;\n  animation: pulse 2s infinite;\n  box-shadow: none;\n  cursor: pointer;\n}\n.btn-toTop .icon-shang {\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  height: 60px;\n}\nul,\nli {\n  margin: 0;\n  padding: 0;\n  list-style: none;\n}\nbody {\n  font: 14px/1.4 'Arial';\n}\na {\n  text-decoration: none;\n  color: #fff;\n}\n#header {\n  display: flex;\n  align-items: center;\n  justify-content: flex-end;\n  height: 50px;\n  background: #323846;\n  border-radius: 5px;\n}\n#header a {\n  display: block;\n  font-size: 15px;\n  color: #aaa;\n}\n#header .user-area {\n  padding-right: 16px;\n  float: right;\n}\n#header .user-area li {\n  float: left;\n  margin-left: 5px;\n  font-size: 15px;\n}\n#header .user-area li span {\n  color: #fff;\n  display: block;\n}\n#header .user-area img {\n  height: 18px;\n  border-radius: 50%;\n}\n#header .setting {\n  float: right;\n  margin-left: 9px;\n  display: none;\n}\n#header .add-note {\n  float: left;\n  margin-left: 16px;\n  border: 1px solid #fff;\n  border-radius: 4px;\n  padding: 2px 4px;\n}\n#header .login {\n  float: right;\n}\n#content {\n  position: relative;\n  height: -webkit-calc(50%);\n  height: calc(100% - 50px);\n}\n@-webkit-keyframes pulse {\n  0% {\n    -webkit-box-shadow: 0 0 0 0 rgba(96, 57, 224, 0.4);\n  }\n  70% {\n    -webkit-box-shadow: 0 0 0 10px rgba(96, 57, 224, 0);\n  }\n  100% {\n    -webkit-box-shadow: 0 0 0 0 rgba(96, 57, 224, 0);\n  }\n}\n@keyframes pulse {\n  0% {\n    -moz-box-shadow: 0 0 0 0 rgba(96, 57, 224, 0.4);\n    box-shadow: 0 0 0 0 rgba(96, 57, 224, 0.4);\n  }\n  70% {\n    -moz-box-shadow: 0 0 0 15px rgba(96, 57, 224, 0);\n    box-shadow: 0 0 0 15px rgba(96, 57, 224, 0);\n  }\n  100% {\n    -moz-box-shadow: 0 0 0 0 rgba(96, 57, 224, 0);\n    box-shadow: 0 0 0 0 rgba(96, 57, 224, 0);\n  }\n}\n@keyframes move-twink-back {\n  from {\n    background-position: 0 0;\n  }\n  to {\n    background-position: -10000px 5000px;\n  }\n}\n.stars,\n.twinkling {\n  position: absolute;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  width: 100%;\n  height: 100%;\n  display: block;\n}\n", ""]);
 // Exports
 module.exports = exports;
 
@@ -830,7 +838,7 @@ module.exports = exports;
 var ___CSS_LOADER_API_IMPORT___ = __webpack_require__(1);
 exports = ___CSS_LOADER_API_IMPORT___(false);
 // Module
-exports.push([module.i, ".note {\n  position: absolute;\n  color: #333;\n  width: 250px;\n  margin: 20px 10px;\n  transition: all 0.5s;\n  transform: rotate(0deg);\n  border-top-left-radius: 5px 5px;\n  border-top-right-radius: 5px 5px;\n  border-bottom-left-radius: 5px 5px;\n  border-bottom-right-radius: 20px 20px;\n  -webkit-transform: rotate(0deg);\n}\n.note:hover {\n  transform: rotate(2deg);\n}\n.note:nth-child(odd) {\n  transform: rotate(2deg);\n  background: #cfc;\n}\n.note:nth-child(odd):hover {\n  transform: rotate(0deg);\n}\n.note:nth-child(3n) {\n  transform: rotate(-1.5deg);\n}\n.note:nth-child(3n):hover {\n  transform: rotate(0deg);\n}\n.note:nth-child(3n-1) {\n  transform: rotate(2.5deg);\n  background: #ccf;\n}\n.note:nth-child(3n-1):hover {\n  transform: rotate(0deg);\n}\n.note .note-head {\n  min-height: 50px;\n  background-color: #ea9b35;\n  cursor: move;\n  font-size: 12px;\n  line-height: 20px;\n  padding-left: 10px;\n  padding-top: 10px;\n  color: #222;\n  border-top-left-radius: 5px 5px;\n  border-top-right-radius: 5px 5px;\n}\n.note .note-head .icon-shanchu1 {\n  color: black;\n}\n.note .note-head:hover .delete {\n  opacity: 1;\n}\n.note .note-head:before {\n  position: absolute;\n  left: 50%;\n  top: -11px;\n  margin-left: -32px;\n  content: ' ';\n  display: block;\n  width: 64px;\n  height: 18px;\n  background: #35bba3;\n}\n.note .note-head:after {\n  position: absolute;\n  left: 50%;\n  margin-left: 32px;\n  top: -11px;\n  z-index: -1;\n  content: '';\n  display: block;\n  width: 0;\n  height: 0;\n  border-left: 5px solid #299683;\n  border-top: 18px solid transparent;\n}\n.note .note-ct {\n  border-bottom-left-radius: 5px 5px;\n  border-bottom-right-radius: 20px 20px;\n  padding: 10px;\n  background-color: #efb04e;\n  outline: none;\n  overflow: hidden;\n  position: relative;\n  min-height: 100px;\n}\n.note .note-ct:before {\n  content: \"\";\n  position: absolute;\n  bottom: -8px;\n  right: -8px;\n  border-radius: 5px;\n  border-style: solid;\n  border-color: #fff0 #fff0 #ffffffe6 #ffffffe6;\n  background: #fff;\n  -webkit-box-shadow: 0px 0px 15px 4px #0c0f4180;\n  -moz-box-shadow: 0px 0px 15px 4px #0c0f4180;\n  box-shadow: 0px 0px 15px 4px #0c0f4180;\n  /* Firefox 3.0 damage limitation */\n  display: block;\n  width: 20px;\n  height: 20px;\n  opacity: 1;\n}\n.note .delete {\n  position: absolute;\n  top: 15px;\n  right: 4px;\n  font-size: 12px;\n  color: #fff;\n  cursor: pointer;\n  opacity: 0.5;\n  transition: opacity 0.3s;\n}\n.note .username {\n  margin-top: 10px;\n}\n.draggable {\n  opacity: 0.8;\n  cursor: move;\n  transition: none;\n}\n", ""]);
+exports.push([module.i, ".note.addfirst {\n  width: 300px;\n  position: fixed;\n  height: 200px;\n  top: 50%;\n  left: 50%;\n  margin-left: -150px;\n  margin-top: -100px;\n  border-radius: 5px;\n  z-index: 101;\n  transform: rotate(2deg);\n}\n.note.addfirst:hover {\n  transform: rotate(0deg);\n}\n.note.addfirst .note-head {\n  min-height: 50px;\n  background-color: #3f78c3;\n  cursor: move;\n  font-size: 12px;\n  line-height: 20px;\n  padding-left: 10px;\n  padding-top: 10px;\n  color: #222;\n  border-top-left-radius: 5px 5px;\n  border-top-right-radius: 5px 5px;\n}\n.note.addfirst .note-head .icon-shanchu1 {\n  color: black;\n}\n.note.addfirst .note-head:hover .delete {\n  opacity: 1;\n}\n.note.addfirst .note-head:hover .done {\n  opacity: 1;\n}\n.note.addfirst .note-head:before {\n  position: absolute;\n  left: 50%;\n  top: -11px;\n  margin-left: -32px;\n  content: ' ';\n  display: block;\n  width: 64px;\n  height: 18px;\n  background: #35bba3;\n}\n.note.addfirst .note-head:after {\n  position: absolute;\n  left: 50%;\n  margin-left: 32px;\n  top: -11px;\n  z-index: -1;\n  content: '';\n  display: block;\n  width: 0;\n  height: 0;\n  border-left: 5px solid #299683;\n  border-top: 18px solid transparent;\n}\n.note.addfirst .note-ct {\n  border: solid 1px white;\n  border-bottom-left-radius: 5px 5px;\n  border-bottom-right-radius: 20px 20px;\n  padding: 10px;\n  background-color: #5591d2;\n  outline: none;\n  overflow: hidden;\n  position: relative;\n  min-height: 100px;\n}\n.note.addfirst .note-ct:hover {\n  border: solid 1px black;\n}\n.note.addfirst .note-ct:before {\n  content: \"\";\n  position: absolute;\n  bottom: -8px;\n  right: -8px;\n  border-radius: 5px;\n  border-style: solid;\n  border-color: #fff0 #fff0 #ffffffe6 #ffffffe6;\n  background: #fff;\n  -webkit-box-shadow: 0px 0px 15px 4px #0c0f4180;\n  -moz-box-shadow: 0px 0px 15px 4px #0c0f4180;\n  box-shadow: 0px 0px 15px 4px #0c0f4180;\n  /* Firefox 3.0 damage limitation */\n  display: block;\n  width: 20px;\n  height: 20px;\n  opacity: 1;\n}\n.note {\n  position: absolute;\n  color: #333;\n  width: 250px;\n  margin: 20px 10px;\n  transition: all 0.5s;\n  transform: rotate(0deg);\n  border-top-left-radius: 5px 5px;\n  border-top-right-radius: 5px 5px;\n  border-bottom-left-radius: 5px 5px;\n  border-bottom-right-radius: 20px 20px;\n  -webkit-transform: rotate(0deg);\n}\n.note:hover {\n  transform: rotate(2deg);\n}\n.note:nth-child(odd) {\n  transform: rotate(2deg);\n}\n.note:nth-child(odd):hover {\n  transform: rotate(0deg);\n}\n.note:nth-child(3n) {\n  transform: rotate(-1.5deg);\n}\n.note:nth-child(3n):hover {\n  transform: rotate(0deg);\n}\n.note:nth-child(3n-1) {\n  transform: rotate(2.5deg);\n}\n.note:nth-child(3n-1):hover {\n  transform: rotate(0deg);\n}\n.note .note-head {\n  min-height: 50px;\n  background-color: #c1c341;\n  cursor: move;\n  font-size: 12px;\n  line-height: 20px;\n  padding-left: 10px;\n  padding-top: 10px;\n  color: #222;\n  border-top-left-radius: 5px 5px;\n  border-top-right-radius: 5px 5px;\n}\n.note .note-head .icon-shanchu1 {\n  color: black;\n}\n.note .note-head:hover .delete {\n  opacity: 1;\n}\n.note .note-head:hover .done {\n  opacity: 1;\n}\n.note .note-head:before {\n  position: absolute;\n  left: 50%;\n  top: -11px;\n  margin-left: -32px;\n  content: ' ';\n  display: block;\n  width: 64px;\n  height: 18px;\n  background: #35bba3;\n}\n.note .note-head:after {\n  position: absolute;\n  left: 50%;\n  margin-left: 32px;\n  top: -11px;\n  z-index: -1;\n  content: '';\n  display: block;\n  width: 0;\n  height: 0;\n  border-left: 5px solid #299683;\n  border-top: 18px solid transparent;\n}\n.note .note-ct {\n  border: solid 1px white;\n  border-bottom-left-radius: 5px 5px;\n  border-bottom-right-radius: 20px 20px;\n  padding: 10px;\n  background-color: #d0d25c;\n  outline: none;\n  overflow: hidden;\n  position: relative;\n  min-height: 100px;\n}\n.note .note-ct:hover {\n  border: solid 1px black;\n}\n.note .note-ct:before {\n  content: \"\";\n  position: absolute;\n  bottom: -8px;\n  right: -8px;\n  border-radius: 5px;\n  border-style: solid;\n  border-color: #fff0 #fff0 #ffffffe6 #ffffffe6;\n  background: #fff;\n  -webkit-box-shadow: 0px 0px 15px 4px #0c0f4180;\n  -moz-box-shadow: 0px 0px 15px 4px #0c0f4180;\n  box-shadow: 0px 0px 15px 4px #0c0f4180;\n  /* Firefox 3.0 damage limitation */\n  display: block;\n  width: 20px;\n  height: 20px;\n  opacity: 1;\n}\n.note .delete {\n  position: absolute;\n  top: 10px;\n  right: 4px;\n  font-size: 12px;\n  color: #fff;\n  cursor: pointer;\n  opacity: 0.5;\n  transition: opacity 0.3s;\n}\n.note .done {\n  position: absolute;\n  top: 10px;\n  right: 50px;\n  font-size: 12px;\n  color: #fff;\n  cursor: pointer;\n  opacity: 0.5;\n  transition: opacity 0.3s;\n}\n.note .username {\n  margin-top: 10px;\n}\n.draggable {\n  opacity: 0.8;\n  cursor: move;\n  transition: none;\n}\n", ""]);
 // Exports
 module.exports = exports;
 
@@ -1041,6 +1049,9 @@ Note.prototype = {
                       创建者是:<span class="username"></span>
                       <br>
                       创建时间是:<span class="createTime">2018年1月1日</span>
+                      <div class="done">
+                        <i class="iconfont icon-wancheng"></i>
+                      </div>
                       <div class="delete">
                         <i class="iconfont icon-shanchu1"></i>
                       </div>
@@ -1053,6 +1064,9 @@ Note.prototype = {
                 </div>`;
               // 全局属性 contenteditable  是一个枚举属性，表示元素是否可被用户编辑。 如果可以，浏览器会修改元素的部件以允许编辑。https://developer.mozilla.org/zh-CN/docs/Web/HTML/Global_attributes/contenteditable
     this.$note = $(tpl);
+
+    this.$note[0].scrollHeight
+    // console.log('window.scrollY',window.scrollY)
     this.$note.find('.note-ct').text(this.opts.context);//find() 方法返回被选元素的后代元素，一路向下直到最后一个后代 https://www.runoob.com/jquery/jquery-traversing-descendants.html
     // text() 方法设置或返回被选元素的文本内容https://www.runoob.com/jquery/html-text.html
     this.$note.find('.username').text(this.opts.username);
@@ -1065,12 +1079,16 @@ Note.prototype = {
 
   setStyle: function () {
     var color = this.colors[4]
+    var colorFirst= this.colors[5]
+
     // var color = this.colors[Math.floor(Math.random()*6)];//Math.floor 返回小于或等于一个给定数字的最大整数。Math.floor() === 向下取整
     // https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Math/floor
     //Math.random() 函数返回一个浮点,  伪随机数在范围从0到小于1 ,https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Math/random
     //因为有6种颜色所以*6
-    this.$note.find('.note-head').css('background-color', color[0]);//把头部颜色设置为第一个选项
-    this.$note.find('.note-ct').css('background-color', color[1]);//把内容的颜色设置为第二个选项
+    // this.$note.find('.note-head').css('background-color', color[0]);//把头部颜色设置为第一个选项
+    // this.$note.find('.note-ct').css('background-color', color[1]);//把内容的颜色设置为第二个选项
+    // this.$note.find('.note.addfirst .note-head').css('background-color', colorFirst[0]);//把头部颜色设置为第一个选项
+    // this.$note.find('.note.addfirst .note-ct').css('background-color', colorFirst[1]);//把内容的颜色设置为第二个选项
   },
 
   setLayout: function(){//这个的作用是用于失去焦点及粘贴后触发瀑布流效果
@@ -1091,10 +1109,25 @@ Note.prototype = {
         $noteHead = $note.find('.note-head'),
         $noteCt = $note.find('.note-ct'),
         $delete = $note.find('.delete');
+        $done = $note.find('.done');
+        
 
     $delete.on('click', function(){//点击删除按钮触发删除事件
       self.delete();
     })
+
+    $done.on('click', function(){//点击删除按钮触发删除事件
+      if( $noteCt.data('before') != $noteCt.text() ) {//如果before这个临时key里面的值不等于$noteCt.html()那就按照下面的代码把这个before临时key设置为$noteCt.html()
+        $noteCt.data('before',$noteCt.text());//把临时before这个key设置为$noteCt.html()
+        // self.setLayout();//触发瀑布流事件效果
+        if(self.id){//如果存在id就是执行编辑事件
+          self.edit($noteCt.text())
+        }else{//不存在id就执行增加事件
+          self.add($noteCt.text(),self.getTime())
+        }
+      }
+      // self.add();
+    });
 
     //contenteditable没有 change 事件，所有这里做了模拟通过判断元素内容变动，执行 save
     $noteCt.on('focus', function() {//聚焦的时候触发
@@ -1104,11 +1137,11 @@ Note.prototype = {
       //这里就是把元素$noteCt里面设置一个临时key是before，它的值是$noteCt.html()
       // .html()获取集合中第一个匹配元素的HTML内容，https://www.jquery123.com/html/
       // console.log($noteCt.data('before'),'$noteCt.data(before)')
-    }).on('blur paste', function() {//当失去焦点(也就是输入完成后离开输入框)或者粘贴的是时候触发
+    }).on('paste ', function() {//当失去焦点(也就是输入完成后离开输入框)或者粘贴的是时候触发
       // console.log('失去焦点或者粘贴')
       if( $noteCt.data('before') != $noteCt.text() ) {//如果before这个临时key里面的值不等于$noteCt.html()那就按照下面的代码把这个before临时key设置为$noteCt.html()
         $noteCt.data('before',$noteCt.text());//把临时before这个key设置为$noteCt.html()
-        self.setLayout();//触发瀑布流事件效果
+        // self.setLayout();//触发瀑布流事件效果
         if(self.id){//如果存在id就是执行编辑事件
           self.edit($noteCt.text())
         }else{//不存在id就执行增加事件
@@ -1175,7 +1208,7 @@ Note.prototype = {
   },
 
   add: function (msg,createTime){
-    console.log('addd...');
+    // console.log('addd...');
     var self = this;
     $.post('/api/notes/add', {note: msg , createTime:createTime})//新增的需要提供内容。如果成功下面只是弹出toast提醒你成功了
       .done(function(ret){
@@ -1186,6 +1219,7 @@ Note.prototype = {
         // });
           Toast('add success');
           setTimeout(() => {
+            // $('#content').children().last().find(".done").css("display","none")
             window.location.reload()//如果不刷新，那么同样的note上面修改会导致增加事件而不是编辑事件。
           },1800);
         }else{
@@ -1204,6 +1238,10 @@ Note.prototype = {
     $.post('/api/notes/delete', {id: this.id})//删除需要提供删除哪一个id
       .done(function(ret){
         if(ret.status === 0){
+          $('#content').removeClass('addfirst')
+          $('.cloak').css("display","none")
+          // $('#content').children().last().find(".done").css("display","none")
+
           Toast('delete success');
           self.$note.remove();
           // remove()从DOM中删除所有匹配的元素。 https://jquery.cuishifeng.cn/remove.html
@@ -1253,6 +1291,26 @@ var NoteManager = __webpack_require__(4).NoteManager;
 
 // Toast('hello world')
 
+
+// $(document).ready(function () { 
+//   var bsumHeight=$('html')[0].scrollHeight
+
+//   console.log($('html,body').css("height",bsumHeight),`$('html').css("height",bsumHeight)`)
+// })
+
+
+// $(function () { 
+//   var bsumHeight=parseInt(window.scrollY)+parseInt($('.cloak').css('height'))
+//   // var bsumHeight=$('.cloak')[0].scrollHeight
+//   console.log(bsumHeight)
+//   console.log($('html,body').css("height"),`$('html').css("height")`)
+
+//   $('html,body').css("height",bsumHeight)
+//   console.log($('html,body').css("height",bsumHeight),`$('html').css("height",bsumHeight)`)
+
+// });
+
+
 NoteManager.load();
 
 // var a=new Note({
@@ -1277,9 +1335,30 @@ $('.add-note').on('click', function() {//首页点击添加按钮的时候执行
 //   } 
 
 $('.btn-toTop').on('click', function(){
-  console.log('111')
+  // console.log('111')
   $('html, body').animate({ scrollTop: 0 }, 1000,'linear')
 })
+
+$('.add-note').on('click',function(){
+
+  // console.log($('html')[0].scrollHeight,"$('body')[0].scrollHeight")
+  // var sumHeight=parseInt(window.scrollY)+parseInt($('.cloak').css('height'))
+  var sumHeight=$('html,body')[0].scrollHeight
+  // console.log(sumHeight)
+
+  
+  $('.cloak').css("height",sumHeight)
+
+  // console.log(sumHeight,'sumHeight')
+// console.log(parseInt(window.scrollY),'parseInt(window.scrollY)')
+// console.log(parseInt($('.cloak').css('height')),"parseInt($('.cloak').css('height')")
+})
+
+
+
+// .cloak
+
+// $('.cloak').css("height",sumHeight)
 
 
 Event.on('waterfall', function(){

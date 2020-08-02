@@ -23,7 +23,7 @@ router.get('/notes', function(req, res, next) {
   }
   Note.findAll(opts)
   .then(function(notes){
-    console.log(notes)
+    // console.log(notes)
     res.send({status:0,data:notes})
   })
   .catch(function(){
@@ -65,7 +65,7 @@ router.post('/notes/addfirst', function(req, res, next) {//这一步只是把用
 
   new Promise((resolve,reject)=>resolve(req.session.user.username))
   .then(function(username){
-    console.log(username)
+    // console.log(username)
     res.send({status:0,data:username})//因为增加note的前端代码就实现了效果，后端只需要告诉前端增加成功即可。成功就是{status:0}
   })
   .catch(function(){
@@ -92,8 +92,8 @@ router.post('/notes/edit', function(req, res, next) {
       }
   })
   .then(function(notes){
-    console.log('arguments',arguments[0])
-    console.log('notes',notes)
+    // console.log('arguments',arguments[0])
+    // console.log('notes',notes)
     res.send({status:0});
   })
   .catch(function(){
@@ -154,7 +154,7 @@ router.post('/notes/delete', function(req, res, next) {
     },
   })
   .then(function(note){
-    console.log(note,'note')
+    // console.log(note,'note')
     res.send({status:0});
   })
   .catch(function(){

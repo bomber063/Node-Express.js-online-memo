@@ -4396,7 +4396,39 @@ $('.btn-toTop').on('click', function(){
 }
 ```
 * 另外note的随机颜色我改成只显示一种颜色了。
+### 上传到服务器上运行的时候报错
+* 报错主要原因是**sqlite3这个依赖**，这个依赖[sqlite3](https://www.npmjs.com/package/sqlite3)主要是经过查询发现应该是不支持node9.0了，但是老师的服务器上的node还是9.1版本，经过更新后解决了。
+* 服务器的说明看[这里](https://xiedaimala.com/tasks/8a355066-791a-4597-a695-3fc403354bbb/text_tutorials/c3f0b185-8bb0-4d2d-be46-257e25e3701d)
+* 这里的www目录是在服务器的根目录下面。（看不到他，需要输入cd /www）
+* **我在这个目录下面增加了域名对应的id和端口，但是这个域名还是访问不了，不知道为什么**
+## 继续优化
+* 增加github的icon
+* 增加新增的note出现在中间，颜色与其他颜色不同。并且周围暗化。
+* 增加新增的note后的确定按钮的icon。
+* 移除失去焦点触发增加事件，增加点击确定按钮触发增加事件。
+* 调整header样式
+* 修改背景颜色。
+* 移除粘贴事件后触发瀑布流事件。
+* 增加hover后出现内容区的边框颜色变化
+* 用到的API
+  * [Element.scrollHeight](https://developer.mozilla.org/zh-CN/docs/Web/API/Element/scrollHeight)
+* [jquery如何删除一个css属性](https://m.imooc.com/wenda/detail/526897)
+* [使用jQuery移除css属性](https://blog.csdn.net/qq_43382853/article/details/100715018)
+* [jquery如何获取第一个或最后一个子元素？](https://www.cnblogs.com/jpfss/p/9512098.html)
+* [如何选择jQuery中的最后一个子元素？](https://www.imooc.com/wenda/detail/597950)
+* [jquery 有没有 scrollHeight来获取实际的高度](https://zhidao.baidu.com/question/1925237225722830587.html)
+* 服务器设置[看这里](https://xiedaimala.com/tasks/8a355066-791a-4597-a695-3fc403354bbb/text_tutorials/c3f0b185-8bb0-4d2d-be46-257e25e3701d)
 ## 其他
+### npm 如何查看一个包的版本信息？
+* [npm 如何查看一个包的版本信息？](https://blog.csdn.net/cvper/article/details/79543262?utm_source=blogxgwz15
+###  pm2从入门到精通
+* [ pm2从入门到精通](https://www.kancloud.cn/daiji/pm2/395298)
+### Linux下vim编辑器命令大全
+* [Linux下vim编辑器命令大全](https://www.jianshu.com/p/00c4e8d82303)
+### 域名配置
+* 我用到的是namesilo，老师提供的域名前面要增加@和www和*。但是我的这个服务器不能增加@，具体请看这里[namesilo域名解析教程](http://www.bestvpser.com/166.html).前面三个分别代码什么，请看这里[域名解析前面的前缀* @ www 分别代表什么](https://www.cnblogs.com/azhqiang/p/10830755.html)
+### 如何ping一个域名
+* [如何ping一个域名](https://zhidao.baidu.com/question/248357763.html)
 ### 小技巧安装nrm切换源
 * [npr文档](https://www.npmjs.com/package/nrm)
 ```sh

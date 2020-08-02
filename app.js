@@ -48,7 +48,6 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // app.use('/stylesheets/style.css',function(req,res,next){
-//   console.log('get style.css....')
 //   res.send('get style.css....')
 // })
 

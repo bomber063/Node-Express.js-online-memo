@@ -16,12 +16,16 @@
           <li><span class="line"> | </span> </li>
           <li><a class="logout" href="/auth/logout">注销</a></li>
         <%} else { %>
-          <li><a class="login" title="GitHub登录" href="/auth/github"> GitHub登录</a>
+          <li><span title="游客">游客</span></li>
+          <li><span class="line"> | </span> </li>
+          <li><a class="login" title="GitHub登录" href="/auth/github"><i class="iconfont icon-github"></i>GitHub登录</a>
           </li>
         <% } %>
       </ul>
 
     </div>
+    <div class="cloak" style="display: none;"></div>
+
     <div id="content">
 
     </div>
