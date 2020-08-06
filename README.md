@@ -4398,6 +4398,10 @@ $('.btn-toTop').on('click', function(){
 * 另外note的随机颜色我改成只显示一种颜色了。
 ### 上传到服务器上运行的时候报错
 * 报错主要原因是**sqlite3这个依赖**，这个依赖[sqlite3](https://www.npmjs.com/package/sqlite3)主要是经过查询发现应该是不支持node9.0了，但是老师的服务器上的node还是9.1版本，经过更新后解决了。
+* 另外安装sqlite3的时候老师和部分网上推荐用淘宝的源安装，安装命令如下
+```sh
+npm install sqlite3 --registry=http://registry.npm.taobao.org
+```
 * 服务器的说明看[这里](https://xiedaimala.com/tasks/8a355066-791a-4597-a695-3fc403354bbb/text_tutorials/c3f0b185-8bb0-4d2d-be46-257e25e3701d)
 * 这里的www目录是在服务器的根目录下面。（看不到他，需要输入cd /www）
 * **我在这个目录下面增加了域名对应的id和端口，但是这个域名还是访问不了，不知道为什么**
